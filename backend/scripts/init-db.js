@@ -69,7 +69,7 @@ try {
     // A los usuarios de ejemplo que aún no tengan contraseña se les asigna la de demostración.
     const hash = await bcrypt.hash(CONTRASENA_DEMO, 10);
     await cliente.query(
-      `UPDATE usuarios SET contrasena_hash = $1
+      `UPDATE personas SET contrasena_hash = $1
         WHERE documento = ANY($2) AND contrasena_hash IS NULL`,
       [hash, DOCUMENTOS_DEMO]
     );

@@ -49,7 +49,7 @@ export async function listar() {
             (SELECT COUNT(*)::int FROM asignaciones_rutina a
               WHERE a.rutina_id = r.id AND a.vigente) AS usuarios_asignados
        FROM rutinas r
-       JOIN usuarios u ON u.id = r.entrenador_id
+       JOIN personas u ON u.id = r.entrenador_id
       ORDER BY r.id DESC`
   );
 
@@ -61,7 +61,7 @@ export async function obtenerPorId(id) {
   const { rows } = await pool.query(
     `SELECT ${COLUMNAS_RUTINA}
        FROM rutinas r
-       JOIN usuarios u ON u.id = r.entrenador_id
+       JOIN personas u ON u.id = r.entrenador_id
       WHERE r.id = $1`,
     [id]
   );

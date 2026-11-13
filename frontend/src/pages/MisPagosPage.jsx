@@ -7,7 +7,8 @@ const moneda = new Intl.NumberFormat("es-CO", {
   maximumFractionDigits: 2,
 });
 
-// Sprint 3 - E3-HU2: el usuario consulta SU historial de pagos.
+// Sprint 3 - E3-HU2: el usuario consulta SU historial de pagos y
+// E3-HU3: sus pagos pendientes.
 // El servidor identifica al usuario por su sesión: no puede ver pagos ajenos.
 function MisPagosPage({ notificar }) {
   const [cargando, setCargando] = useState(true);
@@ -15,6 +16,8 @@ function MisPagosPage({ notificar }) {
   const [resultado, setResultado] = useState(null); // { pagos, resumen, periodo }
   const [periodo, setPeriodo] = useState("");
   const [periodoActivo, setPeriodoActivo] = useState("");
+  const [pendientes, setPendientes] = useState(null); // { pendientes, resumen }
+  const [errorPendientes, setErrorPendientes] = useState(null);
 
   const consultar = useCallback(async (periodoConsulta) => {
     setCargando(true);
@@ -38,6 +41,15 @@ function MisPagosPage({ notificar }) {
   // Carga inicial al abrir la pantalla.
   useEffect(() => {
     let vigente = true;
+
+    api.misPagos
+      .pendientes()
+      .then((respuesta) => {
+        if (vigente) setPendientes(respuesta.data);
+      })
+      .catch((error) => {
+        if (vigente) setErrorPendientes(error.message);
+      });
 
     api.misPagos
       .consultar()
@@ -104,6 +116,78 @@ function MisPagosPage({ notificar }) {
           </article>
         </section>
       )}
+
+      <section className="tarjeta">
+        <div className="encabezado-listado">
+          <div className="titulo-listado">
+            <div>
+              <span className="sobretitulo">POR PAGAR</span>
+              <h2>Mis pagos pendientes</h2>
+            </div>
+
+            {pendientes && (
+              <span className="contador">
+                {pendientes.resumen.cantidad}{" "}
+                {pendientes.resumen.cantidad === 1 ? "pendiente" : "pendientes"}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {errorPendientes ? (
+          <div className="vacio">
+            <div className="vacio-icono" aria-hidden="true">!</div>
+            <h3>No se pudieron cargar tus pagos pendientes</h3>
+            <p>{errorPendientes}</p>
+          </div>
+        ) : !pendientes ? (
+          <div className="vacio">
+            <h3>Cargando tus pagos pendientes...</h3>
+          </div>
+        ) : pendientes.pendientes.length === 0 ? (
+          <div className="vacio">
+            <div className="vacio-icono" aria-hidden="true">✓</div>
+            <h3>No tienes pagos pendientes</h3>
+            <p>Estás al día con tus pagos.</p>
+          </div>
+        ) : (
+          <>
+            <div className="tabla-contenedor">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Concepto</th>
+                    <th>Período</th>
+                    <th>Valor</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {pendientes.pendientes.map((cobro) => (
+                    <tr key={cobro.id}>
+                      <td data-label="Concepto">{cobro.concepto}</td>
+                      <td data-label="Período">{cobro.periodo}</td>
+                      <td data-label="Valor">{moneda.format(cobro.valor)}</td>
+                      <td data-label="Estado">
+                        <span className="estado inactivo">
+                          <span className="estado-punto"></span>
+                          Pendiente
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <p className="aviso">
+              Total pendiente: <strong>{moneda.format(pendientes.resumen.total)}</strong>. Para pagar,
+              acércate a la recepción del gimnasio.
+            </p>
+          </>
+        )}
+      </section>
 
       <section className="tarjeta">
         <div className="encabezado-listado">

@@ -1,6 +1,7 @@
 -- =====================================================================
 -- SAIYAGYM - Esquema de base de datos (PostgreSQL)
--- Cubre: Sprint 1 (personas) y Sprint 2 (rutinas y su asignación).
+-- Cubre: Sprint 1 (personas), Sprint 2 (rutinas y su asignación) y
+-- Sprint 3 (obligaciones de cobro y pagos).
 -- Es idempotente: se puede ejecutar varias veces sin borrar datos.
 --
 -- MODELO DE HERENCIA (tabla por subtipo)
@@ -165,6 +166,51 @@ CREATE TABLE IF NOT EXISTS asignaciones_rutina (
 );
 
 -- ---------------------------------------------------------------------
+-- OBLIGACIONES DE PAGO (E3)
+-- Lo que un usuario debe pagar en un período (ej. la mensualidad de
+-- 2026-10). Solo puede existir una obligación por usuario, concepto y
+-- período: eso evita que el mismo pago se registre dos veces (E3-HU1).
+-- Mientras está "Pendiente" aparece en los pagos pendientes (E3-HU3);
+-- al pagarse pasa a "Pagada" (E3-HU1 y E3-HU4).
+-- Solo se cobra a un USUARIO (subtipo), no a administradores ni entrenadores.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS obligaciones (
+    id          SERIAL PRIMARY KEY,
+    usuario_id  INTEGER       NOT NULL,
+    concepto    VARCHAR(80)   NOT NULL,
+    periodo     CHAR(7)       NOT NULL,
+    valor       NUMERIC(12,2) NOT NULL,
+    estado      VARCHAR(10)   NOT NULL DEFAULT 'Pendiente',
+    creado_en   TIMESTAMPTZ   NOT NULL DEFAULT now(),
+    CONSTRAINT obligaciones_usuario_fk  FOREIGN KEY (usuario_id) REFERENCES usuarios (persona_id),
+    CONSTRAINT obligaciones_uk          UNIQUE (usuario_id, concepto, periodo),
+    CONSTRAINT obligaciones_concepto_ck CHECK (length(btrim(concepto)) > 0),
+    CONSTRAINT obligaciones_periodo_ck  CHECK (periodo ~ '^[0-9]{4}-(0[1-9]|1[0-2])$'),
+    CONSTRAINT obligaciones_valor_ck    CHECK (valor > 0),
+    CONSTRAINT obligaciones_estado_ck   CHECK (estado IN ('Pendiente', 'Pagada'))
+);
+
+-- ---------------------------------------------------------------------
+-- PAGOS (E3-HU1, E3-HU2, E3-HU4)
+-- Cada pago salda exactamente una obligación (obligacion_id es único).
+-- Guarda la fecha, el valor y quién lo registró: solo un ADMINISTRADOR
+-- (la clave foránea apunta a la tabla administradores).
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS pagos (
+    id              SERIAL PRIMARY KEY,
+    obligacion_id   INTEGER       NOT NULL REFERENCES obligaciones (id),
+    usuario_id      INTEGER       NOT NULL,
+    valor           NUMERIC(12,2) NOT NULL,
+    fecha_pago      DATE          NOT NULL DEFAULT CURRENT_DATE,
+    registrado_por  INTEGER       NOT NULL,
+    creado_en       TIMESTAMPTZ   NOT NULL DEFAULT now(),
+    CONSTRAINT pagos_usuario_fk    FOREIGN KEY (usuario_id)     REFERENCES usuarios (persona_id),
+    CONSTRAINT pagos_registrador_fk FOREIGN KEY (registrado_por) REFERENCES administradores (persona_id),
+    CONSTRAINT pagos_obligacion_uk UNIQUE (obligacion_id),
+    CONSTRAINT pagos_valor_ck      CHECK (valor > 0)
+);
+
+-- ---------------------------------------------------------------------
 -- MIGRACIÓN (continuación): pasa los datos de la tabla antigua a las
 -- nuevas conservando los mismos id (así rutinas y asignaciones siguen
 -- apuntando a las mismas personas), reapunta las claves foráneas y
@@ -209,6 +255,26 @@ BEGIN
             ADD CONSTRAINT asignaciones_rutina_usuario_fk
             FOREIGN KEY (usuario_id) REFERENCES usuarios (persona_id);
 
+        -- Bases que ya tenían obligaciones y pagos: sus claves foráneas apuntaban
+        -- a la tabla antigua; se reapuntan a los subtipos nuevos.
+        ALTER TABLE obligaciones DROP CONSTRAINT IF EXISTS obligaciones_usuario_id_fkey;
+        ALTER TABLE pagos        DROP CONSTRAINT IF EXISTS pagos_usuario_id_fkey;
+        ALTER TABLE pagos        DROP CONSTRAINT IF EXISTS pagos_registrado_por_fkey;
+
+        ALTER TABLE obligaciones DROP CONSTRAINT IF EXISTS obligaciones_usuario_fk;
+        ALTER TABLE pagos        DROP CONSTRAINT IF EXISTS pagos_usuario_fk;
+        ALTER TABLE pagos        DROP CONSTRAINT IF EXISTS pagos_registrador_fk;
+
+        ALTER TABLE obligaciones
+            ADD CONSTRAINT obligaciones_usuario_fk
+            FOREIGN KEY (usuario_id) REFERENCES usuarios (persona_id);
+        ALTER TABLE pagos
+            ADD CONSTRAINT pagos_usuario_fk
+            FOREIGN KEY (usuario_id) REFERENCES usuarios (persona_id);
+        ALTER TABLE pagos
+            ADD CONSTRAINT pagos_registrador_fk
+            FOREIGN KEY (registrado_por) REFERENCES administradores (persona_id);
+
         DROP TABLE usuarios_antiguo;
     END IF;
 END
@@ -223,3 +289,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS asignaciones_una_vigente_por_usuario
 CREATE INDEX IF NOT EXISTS rutina_ejercicios_rutina_idx ON rutina_ejercicios (rutina_id);
 CREATE INDEX IF NOT EXISTS asignaciones_rutina_rutina_idx ON asignaciones_rutina (rutina_id);
 CREATE INDEX IF NOT EXISTS rutinas_entrenador_idx ON rutinas (entrenador_id);
+CREATE INDEX IF NOT EXISTS obligaciones_usuario_idx ON obligaciones (usuario_id);
+CREATE INDEX IF NOT EXISTS obligaciones_pendientes_idx ON obligaciones (periodo, id) WHERE estado = 'Pendiente';
+CREATE INDEX IF NOT EXISTS pagos_usuario_idx ON pagos (usuario_id, fecha_pago DESC);

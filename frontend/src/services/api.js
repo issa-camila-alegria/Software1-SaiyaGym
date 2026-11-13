@@ -115,9 +115,18 @@ export const api = {
     registrar: (datos) => solicitar("POST", "/pagos", datos),
     listar: () => solicitar("GET", "/pagos"),
     usuarios: () => solicitar("GET", "/pagos/usuarios"),
+    pendientes: (usuarioId) =>
+      solicitar(
+        "GET",
+        conParametros("/pagos/pendientes", usuarioId ? { usuario_id: usuarioId } : {})
+      ),
+    generarCobro: (datos) => solicitar("POST", "/pagos/cobros", datos),
+    actualizarEstado: (id, estado) =>
+      solicitar("PATCH", `/pagos/cobros/${id}/estado`, { estado }),
   },
   misPagos: {
     consultar: (periodo) =>
       solicitar("GET", conParametros("/mis-pagos", periodo ? { periodo } : {})),
+    pendientes: () => solicitar("GET", "/mis-pagos/pendientes"),
   },
 };

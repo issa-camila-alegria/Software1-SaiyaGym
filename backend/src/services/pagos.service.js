@@ -39,13 +39,15 @@ export async function listarUsuariosPagables() {
   }));
 }
 
-// E3-HU1: el administrador registra el pago de un usuario.
-export async function registrar(cuerpo, administrador) {
+/** Valida y limpia los datos de un pago o cobro (usuario, concepto, período y valor). */
+function leerDatosCobro(cuerpo, { esCobro = false } = {}) {
   if (vacio(cuerpo?.usuario_id)) {
     throw new AppError(
       400,
       "USUARIO_NO_SELECCIONADO",
-      "Selecciona el usuario que realizó el pago.",
+      esCobro
+        ? "Selecciona el usuario al que se le generará el cobro."
+        : "Selecciona el usuario que realizó el pago.",
       ["usuario_id"]
     );
   }
@@ -78,7 +80,7 @@ export async function registrar(cuerpo, administrador) {
     throw new AppError(
       400,
       "VALOR_INVALIDO",
-      "Ingresa el valor del pago.",
+      esCobro ? "Ingresa el valor del cobro." : "Ingresa el valor del pago.",
       ["valor"]
     );
   }
@@ -89,11 +91,16 @@ export async function registrar(cuerpo, administrador) {
     throw new AppError(
       400,
       "VALOR_INVALIDO",
-      "El valor del pago debe ser un número mayor que cero (máximo 2 decimales).",
+      `El valor del ${esCobro ? "cobro" : "pago"} debe ser un número mayor que cero (máximo 2 decimales).`,
       ["valor"]
     );
   }
 
+  return { usuarioId, concepto, periodo, valor };
+}
+
+/** El usuario debe existir y ser del gimnasio (rol "usuario"). */
+async function exigirUsuarioQuePaga(usuarioId) {
   const usuario = await usuarios.obtenerPorId(usuarioId);
 
   if (!usuario) {
@@ -106,10 +113,18 @@ export async function registrar(cuerpo, administrador) {
     throw new AppError(
       409,
       "USUARIO_NO_PAGA",
-      "Los pagos solo se registran a usuarios del gimnasio.",
+      "Los pagos y cobros solo se manejan con usuarios del gimnasio.",
       ["usuario_id"]
     );
   }
+
+  return usuario;
+}
+
+// E3-HU1: el administrador registra el pago de un usuario.
+export async function registrar(cuerpo, administrador) {
+  const { usuarioId, concepto, periodo, valor } = leerDatosCobro(cuerpo);
+  const usuario = await exigirUsuarioQuePaga(usuarioId);
 
   const yaPagada = () =>
     new AppError(
@@ -191,4 +206,148 @@ export async function consultarHistorial(usuarioIdCrudo, periodoCrudo) {
     resumen: { cantidad: pagos.length, total: Math.round(total * 100) / 100 },
     periodo: periodo || null,
   };
+}
+
+// ---------------------------------------------------------------------
+// E3-HU3: cobros pendientes
+// ---------------------------------------------------------------------
+
+/** Suma y cuenta una lista de cobros pendientes. */
+function resumirPendientes(pendientes) {
+  const total = pendientes.reduce((suma, cobro) => suma + cobro.valor, 0);
+  return { cantidad: pendientes.length, total: Math.round(total * 100) / 100 };
+}
+
+/** El administrador genera un cobro pendiente para un usuario (ej. la mensualidad del mes). */
+export async function generarCobro(cuerpo) {
+  const { usuarioId, concepto, periodo, valor } = leerDatosCobro(cuerpo, { esCobro: true });
+  const usuario = await exigirUsuarioQuePaga(usuarioId);
+
+  try {
+    return await conTransaccion(async (cliente) => {
+      const existente = await repositorio.obtenerObligacionBloqueada(
+        cliente,
+        usuarioId,
+        concepto,
+        periodo
+      );
+
+      if (existente) {
+        throw new AppError(
+          409,
+          "COBRO_DUPLICADO",
+          existente.estado === "Pagada"
+            ? `La obligación "${concepto}" del período ${periodo} ya fue pagada por ${usuario.nombre}.`
+            : `${usuario.nombre} ya tiene un cobro pendiente de "${concepto}" para el período ${periodo}.`,
+          ["concepto", "periodo"]
+        );
+      }
+
+      const { id } = await repositorio.crearObligacion(cliente, {
+        usuarioId,
+        concepto,
+        periodo,
+        valor,
+        estado: "Pendiente",
+      });
+
+      return repositorio.obtenerCobro(cliente, id);
+    });
+  } catch (error) {
+    // Dos solicitudes simultáneas: la restricción única de la base detiene la segunda.
+    if (error.code === "23505") {
+      throw new AppError(
+        409,
+        "COBRO_DUPLICADO",
+        `${usuario.nombre} ya tiene una obligación de "${concepto}" para el período ${periodo}.`,
+        ["concepto", "periodo"]
+      );
+    }
+    throw error;
+  }
+}
+
+/**
+ * El administrador consulta los cobros pendientes: de un usuario (si se
+ * indica usuario_id) o de todos. Si el usuario no existe responde 404.
+ */
+export async function consultarPendientes(usuarioIdCrudo) {
+  let usuario = null;
+
+  if (!vacio(usuarioIdCrudo)) {
+    const usuarioId = leerId(usuarioIdCrudo, "usuario");
+    usuario = await exigirUsuarioQuePaga(usuarioId);
+  }
+
+  const pendientes = await repositorio.listarPendientes(usuario?.id ?? null);
+
+  return {
+    pendientes,
+    resumen: resumirPendientes(pendientes),
+    usuario: usuario ? { id: usuario.id, nombre: usuario.nombre } : null,
+  };
+}
+
+/** El usuario consulta SUS cobros pendientes (el id sale de la sesión). */
+export async function consultarMisPendientes(usuarioIdCrudo) {
+  const usuarioId = leerId(usuarioIdCrudo, "id de usuario");
+  const pendientes = await repositorio.listarPendientes(usuarioId);
+
+  return { pendientes, resumen: resumirPendientes(pendientes) };
+}
+
+// ---------------------------------------------------------------------
+// E3-HU4: actualizar el estado de un pago
+// ---------------------------------------------------------------------
+
+/**
+ * Cambia el estado de un cobro:
+ *  - "Pagada": registra el pago por el valor del cobro (queda a nombre del administrador).
+ *  - "Pendiente": revierte el pago (se elimina el registro del pago y el cobro vuelve a estar pendiente).
+ */
+export async function actualizarEstado(idCrudo, cuerpo, administrador) {
+  const id = leerId(idCrudo, "id del cobro");
+  const estado = String(cuerpo?.estado ?? "").trim();
+
+  if (!["Pagada", "Pendiente"].includes(estado)) {
+    throw new AppError(
+      400,
+      "ESTADO_INVALIDO",
+      "El estado debe ser Pagada o Pendiente.",
+      ["estado"]
+    );
+  }
+
+  return conTransaccion(async (cliente) => {
+    const cobro = await repositorio.obtenerCobroBloqueado(cliente, id);
+
+    if (!cobro) {
+      throw new AppError(404, "PAGO_NO_ENCONTRADO", "El pago no fue encontrado.");
+    }
+
+    if (cobro.estado === estado) {
+      throw new AppError(
+        409,
+        "ESTADO_SIN_CAMBIOS",
+        estado === "Pagada"
+          ? `El cobro de "${cobro.concepto}" del período ${cobro.periodo} ya está pagado.`
+          : `El cobro de "${cobro.concepto}" del período ${cobro.periodo} ya está pendiente.`
+      );
+    }
+
+    if (estado === "Pagada") {
+      await repositorio.crearPago(cliente, {
+        obligacionId: cobro.id,
+        usuarioId: cobro.usuario_id,
+        valor: cobro.valor,
+        registradoPor: administrador.id,
+      });
+      await repositorio.marcarObligacionPagada(cliente, cobro.id);
+    } else {
+      await repositorio.eliminarPagoDeObligacion(cliente, cobro.id);
+      await repositorio.marcarObligacionPendiente(cliente, cobro.id);
+    }
+
+    return repositorio.obtenerCobro(cliente, cobro.id);
+  });
 }

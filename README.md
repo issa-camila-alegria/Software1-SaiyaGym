@@ -10,7 +10,7 @@ Sistema web para la gestión de gimnasios (proyecto universitario de Ingeniería
 |---|---|---|
 | 1 | Gestión de usuarios | E1-HU1 Registrar · E1-HU2 Consultar/buscar · E1-HU3 Actualizar · E1-HU4 Gestionar estado |
 | 2 | Gestión de rutinas | E2-HU1 Crear · E2-HU2 Asignar · E2-HU3 Modificar · E2-HU4 Consultar rutina asignada |
-| 3 (parcial) | Gestión de pagos | E3-HU1 Registrar pago (administrador) · E3-HU2 Historial de pagos (usuario). Pendientes: E3-HU3 y E3-HU4 |
+| 3 | Gestión de pagos | E3-HU1 Registrar pago (administrador) · E3-HU2 Historial de pagos (usuario) · E3-HU3 Consultar pagos pendientes (administrador y usuario) · E3-HU4 Actualizar el estado de un pago (administrador) |
 
 ## Un programa distinto para cada perfil
 
@@ -18,13 +18,13 @@ Hay que **iniciar sesión** (documento + contraseña). Según el rol, la persona
 
 | Perfil | Qué ve | Qué NO puede ver ni usar |
 |---|---|---|
-| **Administrador** | Gestión de usuarios (registrar, buscar, editar, activar/inactivar, asignar contraseña) y registro de pagos | Rutinas, asignaciones, "Mi rutina" |
+| **Administrador** | Gestión de usuarios (registrar, buscar, editar, activar/inactivar, asignar contraseña) registro de pagos, cobros pendientes y cambio de estado de los pagos | Rutinas, asignaciones, "Mi rutina" |
 | **Entrenador** | Crear/modificar rutinas y asignarlas a usuarios | Gestión de usuarios, "Mi rutina" |
 | **Usuario** | Solo su propia rutina asignada y su historial de pagos | Todo lo demás |
 
 La restricción **se aplica en el servidor** (la API responde 403 si un perfil llama a rutas que no le corresponden), no solo ocultando botones.
 
-Del Sprint 3 solo están E3-HU1 y E3-HU2; faltan E3-HU3 y E3-HU4. Membresías, asistencia y rachas (Sprints 4 y 5) **no** están incluidos.
+El Sprint 3 (pagos) está completo: E3-HU1 a E3-HU4. Membresías, asistencia y rachas (Sprints 4 y 5) **no** están incluidos.
 
 ## Estructura
 
@@ -132,7 +132,11 @@ Errores: `{ "ok": false, "error": { "codigo": "...", "mensaje": "...", "campos":
 | POST | `/api/pagos` | E3-HU1 registrar pago (`usuario_id`, `valor`, `periodo` AAAA-MM, `concepto` opcional) |
 | GET | `/api/pagos` | últimos pagos registrados (administrador) |
 | GET | `/api/pagos/usuarios` | usuarios a quienes registrar pagos |
+| POST | `/api/pagos/cobros` | generar un cobro pendiente (`usuario_id`, `valor`, `periodo`, `concepto` opcional) |
+| GET | `/api/pagos/pendientes?usuario_id=` | E3-HU3 pagos pendientes de todos o de un usuario (administrador) |
+| PATCH | `/api/pagos/cobros/:id/estado` | E3-HU4 marcar como `Pagada` o devolver a `Pendiente` (administrador) |
 | GET | `/api/mis-pagos?periodo=AAAA-MM` | E3-HU2 mi historial de pagos (usuario) |
+| GET | `/api/mis-pagos/pendientes` | E3-HU3 mis pagos pendientes (usuario) |
 | POST | `/api/rutinas` | E2-HU1 crear rutina |
 | GET | `/api/rutinas` · `/api/rutinas/:id` | listar / consultar |
 | PUT | `/api/rutinas/:id` | E2-HU3 modificar rutina |

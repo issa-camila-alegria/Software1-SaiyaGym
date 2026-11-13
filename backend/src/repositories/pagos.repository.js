@@ -4,12 +4,12 @@ import { pool } from "../config/db.js";
 // Solo SQL, siempre con consultas parametrizadas.
 
 const SELECT_PAGO = `
-  SELECT p.id, p.usuario_id, u.nombre AS usuario_nombre, u.documento AS usuario_documento,
-         o.concepto, o.periodo, p.valor::float8 AS valor,
+  SELECT p.id, p.obligacion_id, p.usuario_id, u.nombre AS usuario_nombre,
+         u.documento AS usuario_documento, o.concepto, o.periodo, p.valor::float8 AS valor,
          to_char(p.fecha_pago, 'YYYY-MM-DD') AS fecha_pago
     FROM pagos p
     JOIN obligaciones o ON o.id = p.obligacion_id
-    JOIN usuarios u     ON u.id = p.usuario_id`;
+    JOIN personas u     ON u.id = p.usuario_id`;
 
 /**
  * Busca la obligación del usuario para ese concepto y período y la bloquea
@@ -90,4 +90,53 @@ export async function listarRecientes(limite = 50) {
   );
 
   return rows;
+}
+
+// ---------------------------------------------------------------------
+// Cobros pendientes y cambio de estado (E3-HU3 y E3-HU4)
+// ---------------------------------------------------------------------
+
+const SELECT_COBRO = `
+  SELECT o.id, o.usuario_id, u.nombre AS usuario_nombre, u.documento AS usuario_documento,
+         o.concepto, o.periodo, o.valor::float8 AS valor, o.estado,
+         to_char(o.creado_en, 'YYYY-MM-DD') AS fecha_creacion
+    FROM obligaciones o
+    JOIN personas u ON u.id = o.usuario_id`;
+
+/** Cobros pendientes de todos los usuarios o de uno solo (el más antiguo primero). */
+export async function listarPendientes(usuarioId = null) {
+  const { rows } = await pool.query(
+    `${SELECT_COBRO}
+      WHERE o.estado = 'Pendiente' AND ($1::int IS NULL OR o.usuario_id = $1::int)
+      ORDER BY o.periodo ASC, o.id ASC`,
+    [usuarioId]
+  );
+
+  return rows;
+}
+
+export async function obtenerCobro(cliente, id) {
+  const { rows } = await cliente.query(`${SELECT_COBRO} WHERE o.id = $1`, [id]);
+  return rows[0] ?? null;
+}
+
+/** Busca el cobro y lo bloquea hasta terminar la transacción (evita cambios cruzados). */
+export async function obtenerCobroBloqueado(cliente, id) {
+  const { rows } = await cliente.query(
+    `SELECT id, usuario_id, concepto, periodo, valor::float8 AS valor, estado
+       FROM obligaciones WHERE id = $1 FOR UPDATE`,
+    [id]
+  );
+
+  return rows[0] ?? null;
+}
+
+export async function marcarObligacionPendiente(cliente, obligacionId) {
+  await cliente.query(`UPDATE obligaciones SET estado = 'Pendiente' WHERE id = $1`, [
+    obligacionId,
+  ]);
+}
+
+export async function eliminarPagoDeObligacion(cliente, obligacionId) {
+  await cliente.query(`DELETE FROM pagos WHERE obligacion_id = $1`, [obligacionId]);
 }

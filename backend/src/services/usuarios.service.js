@@ -216,10 +216,32 @@ export async function actualizar(idCrudo, cuerpo, actor) {
 
   await exigirNoDuplicado(datos.documento, id);
 
-  return repositorio.actualizar(id, {
-    ...datos,
-    contrasenaHash: contrasena ? await cifrarContrasena(contrasena) : null,
-  });
+  try {
+    return await repositorio.actualizar(id, {
+      ...datos,
+      contrasenaHash: contrasena ? await cifrarContrasena(contrasena) : null,
+    });
+  } catch (error) {
+    // 23503: la persona ya tiene rutinas, asignaciones o pagos ligados a su rol actual.
+    if (error.code === "23503") {
+      throw new AppError(
+        409,
+        "ROL_EN_USO",
+        "No se puede cambiar el rol: la persona ya tiene rutinas, asignaciones o pagos asociados.",
+        ["rol"]
+      );
+    }
+    // 23505: otro registro tomó el mismo documento al mismo tiempo.
+    if (error.code === "23505") {
+      throw new AppError(
+        409,
+        "USUARIO_DUPLICADO",
+        "El usuario ya existe: hay un registro con ese documento.",
+        ["documento"]
+      );
+    }
+    throw error;
+  }
 }
 
 // E1-HU4: se cambia el estado, nunca se elimina el registro.
