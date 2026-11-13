@@ -124,6 +124,19 @@ export const api = {
     actualizarEstado: (id, estado) =>
       solicitar("PATCH", `/pagos/cobros/${id}/estado`, { estado }),
   },
+  membresias: {
+    usuarios: () => solicitar("GET", "/membresias/usuarios"),
+    listar: () => solicitar("GET", "/membresias"),
+    registrar: (datos) => solicitar("POST", "/membresias", datos),
+    deUsuario: (usuarioId) => solicitar("GET", `/membresias/usuario/${usuarioId}`),
+    renovar: (id, datos) => solicitar("POST", `/membresias/${id}/renovaciones`, datos),
+    vencimientos: (parametros) =>
+      solicitar("GET", conParametros("/membresias/vencimientos", parametros)),
+    generarAlerta: (id) => solicitar("POST", `/membresias/${id}/alerta`),
+  },
+  miMembresia: {
+    consultar: () => solicitar("GET", "/mi-membresia"),
+  },
   misPagos: {
     consultar: (periodo) =>
       solicitar("GET", conParametros("/mis-pagos", periodo ? { periodo } : {})),

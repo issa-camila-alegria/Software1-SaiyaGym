@@ -6,6 +6,8 @@ import { autenticar, autorizar } from "./middleware/auth.js";
 import { manejarErrores, rutaNoEncontrada } from "./middleware/errorHandler.js";
 import asignacionesRoutes from "./routes/asignaciones.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import membresiasRoutes from "./routes/membresias.routes.js";
+import miMembresiaRoutes from "./routes/miMembresia.routes.js";
 import miRutinaRoutes from "./routes/miRutina.routes.js";
 import misPagosRoutes from "./routes/misPagos.routes.js";
 import pagosRoutes from "./routes/pagos.routes.js";
@@ -38,15 +40,17 @@ app.get("/api/salud", async (req, res) => {
 app.use("/api/auth", authRoutes);
 
 // Cada perfil solo puede usar su propia parte de la API:
-//   administrador -> gestión de usuarios y registro de pagos
+//   administrador -> gestión de usuarios, pagos y membresías
 //   entrenador    -> rutinas y asignaciones
-//   usuario       -> su propia rutina y su historial de pagos
+//   usuario       -> su propia rutina, sus pagos y su membresía
 app.use("/api/usuarios", autenticar, autorizar("administrador"), usuariosRoutes);
 app.use("/api/pagos", autenticar, autorizar("administrador"), pagosRoutes);
+app.use("/api/membresias", autenticar, autorizar("administrador"), membresiasRoutes);
 app.use("/api/rutinas", autenticar, autorizar("entrenador"), rutinasRoutes);
 app.use("/api/asignaciones", autenticar, autorizar("entrenador"), asignacionesRoutes);
 app.use("/api/mi-rutina", autenticar, autorizar("usuario"), miRutinaRoutes);
 app.use("/api/mis-pagos", autenticar, autorizar("usuario"), misPagosRoutes);
+app.use("/api/mi-membresia", autenticar, autorizar("usuario"), miMembresiaRoutes);
 
 app.use(rutaNoEncontrada);
 app.use(manejarErrores);

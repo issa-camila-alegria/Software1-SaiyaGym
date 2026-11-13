@@ -4,6 +4,8 @@ import { useAuth } from "./auth/useAuth.js";
 import logoPequeno from "./assets/logo-pequeno.png";
 import Mensaje from "./components/Mensaje.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
+import MembresiasPage from "./pages/MembresiasPage.jsx";
+import MiMembresiaPage from "./pages/MiMembresiaPage.jsx";
 import MiRutinaPage from "./pages/MiRutinaPage.jsx";
 import MisPagosPage from "./pages/MisPagosPage.jsx";
 import PagosPage from "./pages/PagosPage.jsx";
@@ -16,6 +18,7 @@ const modulosPorRol = {
   administrador: [
     { id: "usuarios", nombre: "Usuarios", sprint: 1, Pagina: UsuariosPage },
     { id: "pagos", nombre: "Pagos", sprint: 3, Pagina: PagosPage },
+    { id: "membresias", nombre: "Membresías", sprint: 4, Pagina: MembresiasPage },
   ],
   entrenador: [
     { id: "rutinas", nombre: "Rutinas", sprint: 2, Pagina: RutinasPage },
@@ -23,6 +26,7 @@ const modulosPorRol = {
   usuario: [
     { id: "mi-rutina", nombre: "Mi rutina", sprint: 2, Pagina: MiRutinaPage },
     { id: "mis-pagos", nombre: "Mis pagos", sprint: 3, Pagina: MisPagosPage },
+    { id: "mi-membresia", nombre: "Mi membresía", sprint: 4, Pagina: MiMembresiaPage },
   ],
 };
 

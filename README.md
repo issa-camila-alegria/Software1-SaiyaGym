@@ -11,6 +11,7 @@ Sistema web para la gestión de gimnasios (proyecto universitario de Ingeniería
 | 1 | Gestión de usuarios | E1-HU1 Registrar · E1-HU2 Consultar/buscar · E1-HU3 Actualizar · E1-HU4 Gestionar estado |
 | 2 | Gestión de rutinas | E2-HU1 Crear · E2-HU2 Asignar · E2-HU3 Modificar · E2-HU4 Consultar rutina asignada |
 | 3 | Gestión de pagos | E3-HU1 Registrar pago (administrador) · E3-HU2 Historial de pagos (usuario) · E3-HU3 Consultar pagos pendientes (administrador y usuario) · E3-HU4 Actualizar el estado de un pago (administrador) |
+| 4 | Gestión de membresías | E4-HU1 Registrar membresía · E4-HU2 Consultar la membresía de un usuario (administrador) y la propia (usuario) · E4-HU3 Renovar membresía · E4-HU4 Consultar vencimientos y generar alertas |
 
 ## Un programa distinto para cada perfil
 
@@ -18,13 +19,13 @@ Hay que **iniciar sesión** (documento + contraseña). Según el rol, la persona
 
 | Perfil | Qué ve | Qué NO puede ver ni usar |
 |---|---|---|
-| **Administrador** | Gestión de usuarios (registrar, buscar, editar, activar/inactivar, asignar contraseña) registro de pagos, cobros pendientes y cambio de estado de los pagos | Rutinas, asignaciones, "Mi rutina" |
+| **Administrador** | Gestión de usuarios (registrar, buscar, editar, activar/inactivar, asignar contraseña) registro de pagos, cobros pendientes y cambio de estado de los pagos, membresías (registrar, consultar, renovar, vencimientos y alertas) | Rutinas, asignaciones, "Mi rutina" |
 | **Entrenador** | Crear/modificar rutinas y asignarlas a usuarios | Gestión de usuarios, "Mi rutina" |
-| **Usuario** | Solo su propia rutina asignada y su historial de pagos | Todo lo demás |
+| **Usuario** | Solo su propia rutina asignada, su historial de pagos y su membresía | Todo lo demás |
 
 La restricción **se aplica en el servidor** (la API responde 403 si un perfil llama a rutas que no le corresponden), no solo ocultando botones.
 
-El Sprint 3 (pagos) está completo: E3-HU1 a E3-HU4. Membresías, asistencia y rachas (Sprints 4 y 5) **no** están incluidos.
+Los Sprints 1 a 4 están completos (usuarios, rutinas, pagos y membresías). Asistencia y rachas (Sprint 5) **no** están incluidos.
 
 ## Estructura
 
@@ -33,7 +34,7 @@ SAIYAGYM/
 ├── frontend/    React + Vite (interfaz)
 │   └── src/
 │       ├── auth/         sesión (AuthProvider, useAuth, token en sessionStorage)
-│       ├── pages/        LoginPage, UsuariosPage, RutinasPage, MiRutinaPage
+│       ├── pages/        LoginPage, UsuariosPage, RutinasPage, MiRutinaPage, PagosPage, MisPagosPage, MembresiasPage, MiMembresiaPage
 │       ├── assets/       logo del proyecto (PNG con fondo transparente)
 │       ├── components/   Mensaje, DetalleRutina
 │       └── services/     api.js (única capa que habla con el backend)
@@ -115,7 +116,7 @@ Son solo para pruebas: cámbialas antes de usar el sistema con datos reales.
 ## API REST
 
 Todas las rutas, salvo `/api/salud` y `/api/auth/login`, exigen el encabezado `Authorization: Bearer <token>`.
-`/api/usuarios` es solo del administrador; `/api/rutinas` y `/api/asignaciones`, solo del entrenador; `/api/mi-rutina` y `/api/mis-pagos`, solo del usuario; `/api/pagos`, solo del administrador.
+`/api/usuarios` es solo del administrador; `/api/rutinas` y `/api/asignaciones`, solo del entrenador; `/api/mi-rutina`, `/api/mis-pagos` y `/api/mi-membresia`, solo del usuario; `/api/pagos` y `/api/membresias`, solo del administrador.
 
 Respuestas exitosas: `{ "ok": true, "data": ..., "mensaje": "..." }`
 Errores: `{ "ok": false, "error": { "codigo": "...", "mensaje": "...", "campos": [] } }`
@@ -137,6 +138,14 @@ Errores: `{ "ok": false, "error": { "codigo": "...", "mensaje": "...", "campos":
 | PATCH | `/api/pagos/cobros/:id/estado` | E3-HU4 marcar como `Pagada` o devolver a `Pendiente` (administrador) |
 | GET | `/api/mis-pagos?periodo=AAAA-MM` | E3-HU2 mi historial de pagos (usuario) |
 | GET | `/api/mis-pagos/pendientes` | E3-HU3 mis pagos pendientes (usuario) |
+| POST | `/api/membresias` | E4-HU1 registrar membresía (`usuario_id`, `tipo` Mensual/Trimestral/Semestral/Anual, `valor`, `fecha_inicio` opcional AAAA-MM-DD) |
+| GET | `/api/membresias` | todas las membresías con resumen por estado (administrador) |
+| GET | `/api/membresias/usuarios` | usuarios del gimnasio y si ya tienen membresía |
+| GET | `/api/membresias/usuario/:usuarioId` | E4-HU2 membresía, historial de períodos y alerta de un usuario (administrador) |
+| POST | `/api/membresias/:id/renovaciones` | E4-HU3 renovar (`tipo` y `valor` opcionales: si faltan se repiten los anteriores) |
+| GET | `/api/membresias/vencimientos?dias=5&filtro=proximas` | E4-HU4 vencimientos; `filtro` = `proximas`, `vencidas` o `todas` |
+| POST | `/api/membresias/:id/alerta` | E4-HU4 generar alerta para una membresía próxima a vencer o vencida |
+| GET | `/api/mi-membresia` | E4-HU2 mi membresía, mi historial y mi alerta (usuario) |
 | POST | `/api/rutinas` | E2-HU1 crear rutina |
 | GET | `/api/rutinas` · `/api/rutinas/:id` | listar / consultar |
 | PUT | `/api/rutinas/:id` | E2-HU3 modificar rutina |

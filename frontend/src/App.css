@@ -1275,3 +1275,80 @@ tbody tr:last-child td {
 .login-tarjeta h2 {
   text-align: center;
 }
+
+/* ---------- Membresías (Sprint 4) ---------- */
+
+.por-vencer {
+  border: 1px solid #8a7433;
+  background: #35301a;
+  color: var(--dorado-claro);
+}
+
+.por-iniciar {
+  border: 1px solid #4a5d78;
+  background: #1d2735;
+  color: #a9c4e8;
+}
+
+.alerta-membresia {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin: 0 0 20px;
+  padding: 14px 18px;
+  border: 1px solid #8a7433;
+  border-radius: 10px;
+  background: #35301a;
+  color: var(--dorado-claro);
+  font-size: 14px;
+}
+
+.alerta-membresia.critica {
+  border-color: #754444;
+  background: #352020;
+  color: var(--rojo);
+}
+
+.datos-membresia {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 16px 24px;
+  margin: 0 0 24px;
+}
+
+.datos-membresia div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.datos-membresia dt {
+  color: var(--texto-suave);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+
+.datos-membresia dd {
+  margin: 0;
+  font-size: 15px;
+}
+
+.subtitulo-seccion {
+  margin: 26px 0 12px;
+  color: var(--dorado-claro);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.nota-formulario {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+.formulario input[type="date"] {
+  color-scheme: dark;
+}

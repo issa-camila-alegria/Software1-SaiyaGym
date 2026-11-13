@@ -1,7 +1,7 @@
 -- =====================================================================
 -- SAIYAGYM - Esquema de base de datos (PostgreSQL)
--- Cubre: Sprint 1 (personas), Sprint 2 (rutinas y su asignación) y
--- Sprint 3 (obligaciones de cobro y pagos).
+-- Cubre: Sprint 1 (personas), Sprint 2 (rutinas y su asignación),
+-- Sprint 3 (obligaciones de cobro y pagos) y Sprint 4 (membresías).
 -- Es idempotente: se puede ejecutar varias veces sin borrar datos.
 --
 -- MODELO DE HERENCIA (tabla por subtipo)
@@ -211,6 +211,64 @@ CREATE TABLE IF NOT EXISTS pagos (
 );
 
 -- ---------------------------------------------------------------------
+-- MEMBRESÍAS (E4)
+-- Cada usuario del gimnasio tiene UNA membresía (membresias.usuario_id es
+-- único). La fila guarda la vigencia actual: fecha_inicio y fecha_fin.
+-- El estado (Activa, Próxima a vencer, Vencida) NO se guarda: se calcula
+-- con la fecha de hoy, así nunca queda desactualizado.
+-- Solo se afilia a un USUARIO (subtipo), no a administradores ni entrenadores.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS membresias (
+    id              SERIAL PRIMARY KEY,
+    usuario_id      INTEGER       NOT NULL,
+    tipo            VARCHAR(12)   NOT NULL,
+    fecha_inicio    DATE          NOT NULL,
+    fecha_fin       DATE          NOT NULL,
+    valor           NUMERIC(12,2) NOT NULL,
+    creado_en       TIMESTAMPTZ   NOT NULL DEFAULT now(),
+    actualizado_en  TIMESTAMPTZ   NOT NULL DEFAULT now(),
+    CONSTRAINT membresias_usuario_fk   FOREIGN KEY (usuario_id) REFERENCES usuarios (persona_id),
+    CONSTRAINT membresias_usuario_uk   UNIQUE (usuario_id),
+    CONSTRAINT membresias_tipo_ck      CHECK (tipo IN ('Mensual', 'Trimestral', 'Semestral', 'Anual')),
+    CONSTRAINT membresias_vigencia_ck  CHECK (fecha_fin >= fecha_inicio),
+    CONSTRAINT membresias_valor_ck     CHECK (valor > 0)
+);
+
+-- Historial de períodos: una fila por el registro inicial y por cada
+-- renovación (E4-HU1 y E4-HU3). Lo registra siempre un ADMINISTRADOR.
+CREATE TABLE IF NOT EXISTS membresia_periodos (
+    id              SERIAL PRIMARY KEY,
+    membresia_id    INTEGER       NOT NULL REFERENCES membresias (id),
+    origen          VARCHAR(12)   NOT NULL,
+    tipo            VARCHAR(12)   NOT NULL,
+    fecha_inicio    DATE          NOT NULL,
+    fecha_fin       DATE          NOT NULL,
+    valor           NUMERIC(12,2) NOT NULL,
+    registrado_por  INTEGER       NOT NULL,
+    creado_en       TIMESTAMPTZ   NOT NULL DEFAULT now(),
+    CONSTRAINT membresia_periodos_admin_fk   FOREIGN KEY (registrado_por) REFERENCES administradores (persona_id),
+    CONSTRAINT membresia_periodos_origen_ck  CHECK (origen IN ('Registro', 'Renovación')),
+    CONSTRAINT membresia_periodos_tipo_ck    CHECK (tipo IN ('Mensual', 'Trimestral', 'Semestral', 'Anual')),
+    CONSTRAINT membresia_periodos_vigencia_ck CHECK (fecha_fin >= fecha_inicio),
+    CONSTRAINT membresia_periodos_valor_ck   CHECK (valor > 0)
+);
+
+-- Alertas de vencimiento (E4-HU4): el administrador genera una alerta para
+-- una membresía próxima a vencer o vencida y el usuario la ve en su pantalla.
+-- Solo puede haber una alerta por vencimiento (vence_el): al renovar cambia
+-- la fecha de fin y la alerta anterior deja de aplicar.
+CREATE TABLE IF NOT EXISTS alertas_membresia (
+    id              SERIAL PRIMARY KEY,
+    membresia_id    INTEGER       NOT NULL REFERENCES membresias (id),
+    vence_el        DATE          NOT NULL,
+    mensaje         VARCHAR(200)  NOT NULL,
+    generada_por    INTEGER       NOT NULL,
+    creado_en       TIMESTAMPTZ   NOT NULL DEFAULT now(),
+    CONSTRAINT alertas_membresia_admin_fk FOREIGN KEY (generada_por) REFERENCES administradores (persona_id),
+    CONSTRAINT alertas_membresia_uk       UNIQUE (membresia_id, vence_el)
+);
+
+-- ---------------------------------------------------------------------
 -- MIGRACIÓN (continuación): pasa los datos de la tabla antigua a las
 -- nuevas conservando los mismos id (así rutinas y asignaciones siguen
 -- apuntando a las mismas personas), reapunta las claves foráneas y
@@ -292,3 +350,5 @@ CREATE INDEX IF NOT EXISTS rutinas_entrenador_idx ON rutinas (entrenador_id);
 CREATE INDEX IF NOT EXISTS obligaciones_usuario_idx ON obligaciones (usuario_id);
 CREATE INDEX IF NOT EXISTS obligaciones_pendientes_idx ON obligaciones (periodo, id) WHERE estado = 'Pendiente';
 CREATE INDEX IF NOT EXISTS pagos_usuario_idx ON pagos (usuario_id, fecha_pago DESC);
+CREATE INDEX IF NOT EXISTS membresias_vencimiento_idx ON membresias (fecha_fin);
+CREATE INDEX IF NOT EXISTS membresia_periodos_membresia_idx ON membresia_periodos (membresia_id, id DESC);
