@@ -1626,3 +1626,103 @@ tbody tr:last-child td {
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+/* ---------- Sprint 5: asistencia y rachas ---------- */
+
+.accion-asistencia {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 32px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.accion-asistencia h2 {
+  margin: 4px 0 6px;
+}
+
+.accion-asistencia p {
+  max-width: 52ch;
+  margin: 0;
+  color: var(--texto-suave);
+}
+
+.accion-asistencia p.aviso-bloqueo {
+  color: var(--ambar);
+}
+
+.accion-asistencia .boton-principal {
+  min-width: 240px;
+  padding-block: 16px;
+  font-size: 17px;
+}
+
+.semana {
+  display: grid;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dia {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  padding: 10px 2px;
+  border: 1px solid var(--borde-suave);
+  border-radius: 10px;
+  background: var(--panel-claro);
+  color: var(--texto-suave);
+  font-size: 12px;
+}
+
+.dia-marca {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px dashed var(--borde-suave);
+  border-radius: 50%;
+  font-weight: 800;
+}
+
+.dia-numero {
+  font-variant-numeric: tabular-nums;
+}
+
+.dia.asistio {
+  border-color: var(--oro-oscuro);
+  color: var(--texto);
+}
+
+.dia.asistio .dia-marca {
+  border: 0;
+  background: var(--oro);
+  color: #1a1407;
+}
+
+.dia.hoy {
+  outline: 2px solid var(--oro-claro);
+  outline-offset: 2px;
+}
+
+.sr-solo {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .semana {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .accion-asistencia .boton-principal {
+    width: 100%;
+  }
+}

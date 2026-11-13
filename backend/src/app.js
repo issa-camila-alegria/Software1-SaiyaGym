@@ -9,6 +9,7 @@ import { autenticar, autorizar } from "./middleware/auth.js";
 import { manejarErrores, rutaNoEncontrada } from "./middleware/errorHandler.js";
 import asignacionesRoutes from "./routes/asignaciones.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import miAsistenciaRoutes from "./routes/miAsistencia.routes.js";
 import membresiasRoutes from "./routes/membresias.routes.js";
 import miMembresiaRoutes from "./routes/miMembresia.routes.js";
 import miRutinaRoutes from "./routes/miRutina.routes.js";
@@ -45,7 +46,7 @@ app.use("/api/auth", authRoutes);
 // Cada perfil solo puede usar su propia parte de la API:
 //   administrador -> gestión de usuarios, pagos y membresías
 //   entrenador    -> rutinas y asignaciones
-//   usuario       -> su propia rutina, sus pagos y su membresía
+//   usuario       -> su propia rutina, sus pagos, su membresía y su asistencia
 app.use("/api/usuarios", autenticar, autorizar("administrador"), usuariosRoutes);
 app.use("/api/pagos", autenticar, autorizar("administrador"), pagosRoutes);
 app.use("/api/membresias", autenticar, autorizar("administrador"), membresiasRoutes);
@@ -54,6 +55,7 @@ app.use("/api/asignaciones", autenticar, autorizar("entrenador"), asignacionesRo
 app.use("/api/mi-rutina", autenticar, autorizar("usuario"), miRutinaRoutes);
 app.use("/api/mis-pagos", autenticar, autorizar("usuario"), misPagosRoutes);
 app.use("/api/mi-membresia", autenticar, autorizar("usuario"), miMembresiaRoutes);
+app.use("/api/mi-asistencia", autenticar, autorizar("usuario"), miAsistenciaRoutes);
 
 // En producción, el mismo servidor entrega la página (frontend/dist) y la API:
 // así se usa una sola dirección web y no hace falta configurar CORS.

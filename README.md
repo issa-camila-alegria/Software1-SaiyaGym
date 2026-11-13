@@ -12,6 +12,7 @@ Sistema web para la gestión de gimnasios (proyecto universitario de Ingeniería
 | 2 | Gestión de rutinas | E2-HU1 Crear · E2-HU2 Asignar · E2-HU3 Modificar · E2-HU4 Consultar rutina asignada |
 | 3 | Gestión de pagos | E3-HU1 Registrar pago (administrador) · E3-HU2 Historial de pagos (usuario) · E3-HU3 Consultar pagos pendientes (administrador y usuario) · E3-HU4 Actualizar el estado de un pago (administrador) |
 | 4 | Gestión de membresías | E4-HU1 Registrar membresía · E4-HU2 Consultar la membresía de un usuario (administrador) y la propia (usuario) · E4-HU3 Renovar membresía · E4-HU4 Consultar vencimientos y generar alertas |
+| 5 | Asistencia y rachas | E5-HU1 Registrar mi asistencia · E5-HU2 Consultar mi historial de asistencia · E5-HU3 Gestionar mi racha · E5-HU4 Consultar mis días consecutivos |
 
 ## Un programa distinto para cada perfil
 
@@ -21,11 +22,11 @@ Hay que **iniciar sesión** (documento + contraseña). Según el rol, la persona
 |---|---|---|
 | **Administrador** | Gestión de usuarios (registrar, buscar, editar, activar/inactivar, asignar contraseña) registro de pagos, cobros pendientes y cambio de estado de los pagos, membresías (registrar, consultar, renovar, vencimientos y alertas) | Rutinas, asignaciones, "Mi rutina" |
 | **Entrenador** | Crear/modificar rutinas y asignarlas a usuarios | Gestión de usuarios, "Mi rutina" |
-| **Usuario** | Solo su propia rutina asignada, su historial de pagos y su membresía | Todo lo demás |
+| **Usuario** | Solo su propia rutina asignada, su historial de pagos, su membresía y su asistencia (registrarla, ver su historial y su racha) | Todo lo demás |
 
 La restricción **se aplica en el servidor** (la API responde 403 si un perfil llama a rutas que no le corresponden), no solo ocultando botones.
 
-Los Sprints 1 a 4 están completos (usuarios, rutinas, pagos y membresías). Asistencia y rachas (Sprint 5) **no** están incluidos.
+Los Sprints 1 a 5 están completos (usuarios, rutinas, pagos, membresías, asistencia y rachas). Fidelización y logros (Sprint 6) **no** están incluidos.
 
 ## Estructura
 
@@ -116,7 +117,7 @@ Son solo para pruebas: cámbialas antes de usar el sistema con datos reales.
 ## API REST
 
 Todas las rutas, salvo `/api/salud` y `/api/auth/login`, exigen el encabezado `Authorization: Bearer <token>`.
-`/api/usuarios` es solo del administrador; `/api/rutinas` y `/api/asignaciones`, solo del entrenador; `/api/mi-rutina`, `/api/mis-pagos` y `/api/mi-membresia`, solo del usuario; `/api/pagos` y `/api/membresias`, solo del administrador.
+`/api/usuarios` es solo del administrador; `/api/rutinas` y `/api/asignaciones`, solo del entrenador; `/api/mi-rutina`, `/api/mis-pagos`, `/api/mi-membresia` y `/api/mi-asistencia`, solo del usuario; `/api/pagos` y `/api/membresias`, solo del administrador.
 
 Respuestas exitosas: `{ "ok": true, "data": ..., "mensaje": "..." }`
 Errores: `{ "ok": false, "error": { "codigo": "...", "mensaje": "...", "campos": [] } }`
@@ -146,6 +147,15 @@ Errores: `{ "ok": false, "error": { "codigo": "...", "mensaje": "...", "campos":
 | GET | `/api/membresias/vencimientos?dias=5&filtro=proximas` | E4-HU4 vencimientos; `filtro` = `proximas`, `vencidas` o `todas` |
 | POST | `/api/membresias/:id/alerta` | E4-HU4 generar alerta para una membresía próxima a vencer o vencida |
 | GET | `/api/mi-membresia` | E4-HU2 mi membresía, mi historial y mi alerta (usuario) |
+| GET | `/api/mi-asistencia` | E5-HU2 mi historial de asistencia (más reciente primero), si ya registré hoy, mi racha y si puedo registrar (usuario) |
+| POST | `/api/mi-asistencia` | E5-HU1 registrar mi asistencia de hoy; devuelve la racha ya actualizada |
+| GET | `/api/mi-asistencia/racha` | E5-HU3 / E5-HU4 mi racha: `actual`, `mejor`, `estado` (Activa, En riesgo, Interrumpida, Sin racha) |
+
+**Reglas de asistencia y rachas (Sprint 5)** — *pendientes de confirmar con el docente*:
+- Solo registra asistencia un usuario con membresía vigente (Activa o Próxima a vencer). Vencida, por iniciar o sin membresía se rechaza (409).
+- Una asistencia por usuario y por día (el día es el de la zona horaria del gimnasio, `ZONA_HORARIA`). Un segundo intento se rechaza y no duplica la racha; una restricción única en la base lo garantiza aunque se haga doble clic.
+- La racha cuenta días calendario seguidos. Si pasa un día completo sin asistir, se reinicia (la siguiente asistencia vuelve a 1). La racha de ayer sigue «En riesgo» hasta que termine hoy.
+- La racha no se guarda: se calcula con las fechas de asistencia, así nunca queda desactualizada.
 | POST | `/api/rutinas` | E2-HU1 crear rutina |
 | GET | `/api/rutinas` · `/api/rutinas/:id` | listar / consultar |
 | PUT | `/api/rutinas/:id` | E2-HU3 modificar rutina |

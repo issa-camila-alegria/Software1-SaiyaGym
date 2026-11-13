@@ -1,5 +1,5 @@
 -- =====================================================================
--- SAIYAGYM - Datos de PRUEBA para probar todas las funciones (Sprints 1 a 4)
+-- SAIYAGYM - Datos de PRUEBA para probar todas las funciones (Sprints 1 a 5)
 -- Se ejecuta con:  npm run db:seed:pruebas   (dentro de la carpeta backend)
 --
 -- Qué crea (todas las fechas son relativas a HOY, así los estados de las
@@ -12,6 +12,8 @@
 --   * Membresías en todos los estados: Activa, Próxima a vencer (vence hoy,
 --     en 1, 4 y 5 días), Vencida, Por iniciar, y usuarios sin membresía.
 --     Algunas con renovaciones en el historial y con alerta ya generada.
+--   * Asistencias (Sprint 5) con rachas en todos los estados: Activa, En riesgo,
+--     Interrumpida y Sin racha (se cargan aparte y también si lo demás ya existía).
 --
 -- Todas las personas nuevas usan la contraseña Saiya2026 (la asigna el script).
 -- Se puede ejecutar varias veces: si los datos ya existen, no hace nada.
@@ -211,3 +213,36 @@ BEGIN
     RAISE NOTICE 'Datos de prueba cargados.';
 END
 $prueba$;
+
+-- ---------------------------------------------------------------------
+-- Sprint 5: asistencias de prueba (fechas relativas a HOY).
+-- Va en un bloque aparte para que también se cargue si los datos de los
+-- Sprints 1 a 4 ya existían. Se puede repetir: no duplica asistencias.
+-- doc, desde (días respecto a hoy), hasta
+-- ---------------------------------------------------------------------
+DO $asistencias$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM personas WHERE documento = '20000010') THEN
+        RETURN;
+    END IF;
+
+    INSERT INTO asistencias (usuario_id, fecha, registrada_en)
+    SELECT p.id, d::date, LEAST(d::date + time '18:10', now())
+      FROM (VALUES
+            ('10000003',  -4,  -1),  -- Camila: racha de 4 días que vence hoy (En riesgo): puede registrar hoy
+            ('20000010', -10,  -6),  -- Pablo: racha interrumpida (mejor racha: 5)
+            ('20000011', -20, -12),  -- Mario: una racha anterior de 9 días...
+            ('20000011',  -5,   0),  -- ...y una racha actual de 6 días que incluye hoy (Activa)
+            ('20000013',   0,   0),  -- Rosa: empezó su racha hoy
+            ('20000014', -10,  -4),  -- Juan: membresía vencida, racha interrumpida
+            ('20000015', -50, -45),  -- Daniela: membresía vencida hace tiempo
+            ('20000018',  -1,   0),  -- Felipe: la membresía vence hoy, racha de 2 días (Activa)
+            ('20000019',  -2,  -1)   -- Natalia: racha de 2 días (En riesgo)
+           ) AS a(doc, desde, hasta)
+      JOIN personas p ON p.documento = a.doc
+     CROSS JOIN LATERAL generate_series(CURRENT_DATE + a.desde, CURRENT_DATE + a.hasta, interval '1 day') AS d
+    ON CONFLICT (usuario_id, fecha) DO NOTHING;
+
+    RAISE NOTICE 'Asistencias de prueba listas.';
+END
+$asistencias$;

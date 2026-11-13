@@ -5,6 +5,7 @@ import logoPequeno from "./assets/logo-pequeno.png";
 import Mensaje from "./components/Mensaje.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import MembresiasPage from "./pages/MembresiasPage.jsx";
+import MiAsistenciaPage from "./pages/MiAsistenciaPage.jsx";
 import MiMembresiaPage from "./pages/MiMembresiaPage.jsx";
 import MiRutinaPage from "./pages/MiRutinaPage.jsx";
 import MisPagosPage from "./pages/MisPagosPage.jsx";
@@ -27,6 +28,7 @@ const modulosPorRol = {
     { id: "mi-rutina", nombre: "Mi rutina", sprint: 2, Pagina: MiRutinaPage },
     { id: "mis-pagos", nombre: "Mis pagos", sprint: 3, Pagina: MisPagosPage },
     { id: "mi-membresia", nombre: "Mi membresía", sprint: 4, Pagina: MiMembresiaPage },
+    { id: "mi-asistencia", nombre: "Mi asistencia", sprint: 5, Pagina: MiAsistenciaPage },
   ],
 };
 

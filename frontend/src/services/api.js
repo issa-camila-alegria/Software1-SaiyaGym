@@ -137,6 +137,11 @@ export const api = {
   miMembresia: {
     consultar: () => solicitar("GET", "/mi-membresia"),
   },
+  miAsistencia: {
+    consultar: () => solicitar("GET", "/mi-asistencia"),
+    racha: () => solicitar("GET", "/mi-asistencia/racha"),
+    registrar: () => solicitar("POST", "/mi-asistencia"),
+  },
   misPagos: {
     consultar: (periodo) =>
       solicitar("GET", conParametros("/mis-pagos", periodo ? { periodo } : {})),

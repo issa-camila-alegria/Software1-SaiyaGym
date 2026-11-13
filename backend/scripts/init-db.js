@@ -94,7 +94,7 @@ try {
           WHERE documento LIKE '2000%' AND contrasena_hash IS NULL`,
         [hash]
       );
-      console.log("Datos de prueba cargados (usuarios, rutinas, pagos y membresías).");
+      console.log("Datos de prueba cargados (usuarios, rutinas, pagos, membresías y asistencias).");
     }
 
     console.log("Usuarios de ejemplo listos.");

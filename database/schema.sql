@@ -1,7 +1,7 @@
 -- =====================================================================
 -- SAIYAGYM - Esquema de base de datos (PostgreSQL)
 -- Cubre: Sprint 1 (personas), Sprint 2 (rutinas y su asignación),
--- Sprint 3 (obligaciones de cobro y pagos) y Sprint 4 (membresías).
+-- Sprint 3 (obligaciones de cobro y pagos), Sprint 4 (membresías) y Sprint 5 (asistencia y rachas).
 -- Es idempotente: se puede ejecutar varias veces sin borrar datos.
 --
 -- MODELO DE HERENCIA (tabla por subtipo)
@@ -340,6 +340,22 @@ $$;
 
 -- ---------------------------------------------------------------------
 -- ÍNDICES
+-- ---------------------------------------------------------------------
+-- Sprint 5 (E5): asistencia y rachas.
+-- Una fila por usuario y por día (asistencias_dia_uk): así no se puede
+-- registrar dos veces el mismo día, ni siquiera con dos clics a la vez.
+-- La RACHA no se guarda: se calcula con las fechas (días seguidos), así
+-- nunca queda desactualizada. "Día" = día del gimnasio (ZONA_HORARIA).
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS asistencias (
+    id             SERIAL PRIMARY KEY,
+    usuario_id     INTEGER     NOT NULL,
+    fecha          DATE        NOT NULL,
+    registrada_en  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT asistencias_usuario_fk FOREIGN KEY (usuario_id) REFERENCES usuarios (persona_id),
+    CONSTRAINT asistencias_dia_uk     UNIQUE (usuario_id, fecha)
+);
+
 -- ---------------------------------------------------------------------
 CREATE UNIQUE INDEX IF NOT EXISTS asignaciones_una_vigente_por_usuario
     ON asignaciones_rutina (usuario_id) WHERE vigente;
