@@ -2,7 +2,12 @@ import pg from "pg";
 import { config } from "./env.js";
 
 export const pool = new pg.Pool({
-  ...config.db,
+  ...(config.urlBd
+    ? { connectionString: config.urlBd, ...(config.dbSsl ? { ssl: { rejectUnauthorized: false } } : {}) }
+    : config.db),
+  // Todas las fechas "de hoy" (CURRENT_DATE) se calculan con la hora del
+  // gimnasio, no con la del servidor (que suele estar en UTC).
+  options: `-c timezone=${config.zonaHoraria}`,
   max: 10,
   idleTimeoutMillis: 30000,
 });

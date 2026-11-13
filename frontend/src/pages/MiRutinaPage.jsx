@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import DetalleRutina from "../components/DetalleRutina.jsx";
 import { api } from "../services/api.js";
+import { formatearFecha } from "../utils/formato.js";
 
 // Sprint 2 - E2-HU4: el usuario consulta SU rutina asignada.
 // El servidor identifica al usuario por su sesión: no puede pedir la de otro.
@@ -62,7 +63,7 @@ function MiRutinaPage() {
     <>
       <section className="bienvenida">
         <div>
-          <span className="sobretitulo">PANEL DEL USUARIO</span>
+          <span className="sobretitulo">Panel del usuario</span>
           <h2>Mi rutina</h2>
           <p>
             Consulta los ejercicios que debes realizar según la rutina
@@ -119,12 +120,12 @@ function MiRutinaPage() {
         <section className="tarjeta">
           <div className="encabezado-tarjeta">
             <div>
-              <span className="sobretitulo">TU RUTINA ACTUAL</span>
+              <span className="sobretitulo">Tu rutina actual</span>
               <h2>{resultado.rutina.nombre}</h2>
             </div>
 
             <span className="contador">
-              Asignada el {resultado.fecha_asignacion}
+              Asignada el {formatearFecha(resultado.fecha_asignacion)}
             </span>
           </div>
 

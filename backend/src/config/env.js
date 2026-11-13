@@ -13,6 +13,9 @@ dotenv.config({
 export const config = {
   puerto: Number(process.env.PORT) || 3000,
   corsOrigin: process.env.CORS_ORIGIN || "http://localhost:5173",
+  // En la nube (Render, Neon, Supabase...) la base se indica con una sola URL.
+  urlBd: process.env.DATABASE_URL || "",
+  dbSsl: process.env.DB_SSL === "true",
   db: {
     host: process.env.DB_HOST || "localhost",
     port: Number(process.env.DB_PORT) || 5432,
@@ -20,6 +23,11 @@ export const config = {
     user: process.env.DB_USER || "postgres",
     password: process.env.DB_PASSWORD || "",
   },
+  // Zona horaria del gimnasio: define qué día es "hoy" para asignaciones,
+  // pagos y membresías.
+  zonaHoraria: /^[A-Za-z_\/+-]+$/.test(process.env.ZONA_HORARIA || "")
+    ? process.env.ZONA_HORARIA
+    : "America/Bogota",
   jwt: {
     secreto: process.env.JWT_SECRET || "",
     expira: process.env.JWT_EXPIRA || "8h",

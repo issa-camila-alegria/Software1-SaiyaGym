@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../services/api.js";
+import { formatearFecha } from "../utils/formato.js";
 
 const moneda = new Intl.NumberFormat("es-CO", {
   style: "currency",
   currency: "COP",
+  minimumFractionDigits: 0,
   maximumFractionDigits: 2,
 });
 
@@ -84,7 +86,7 @@ function MisPagosPage({ notificar }) {
     <>
       <section className="bienvenida">
         <div>
-          <span className="sobretitulo">PANEL DEL USUARIO</span>
+          <span className="sobretitulo">Panel del usuario</span>
           <h2>Mis pagos</h2>
           <p>
             Consulta los pagos que has realizado y verifica el historial
@@ -121,7 +123,7 @@ function MisPagosPage({ notificar }) {
         <div className="encabezado-listado">
           <div className="titulo-listado">
             <div>
-              <span className="sobretitulo">POR PAGAR</span>
+              <span className="sobretitulo">Por pagar</span>
               <h2>Mis pagos pendientes</h2>
             </div>
 
@@ -170,7 +172,7 @@ function MisPagosPage({ notificar }) {
                       <td data-label="Período">{cobro.periodo}</td>
                       <td data-label="Valor">{moneda.format(cobro.valor)}</td>
                       <td data-label="Estado">
-                        <span className="estado inactivo">
+                        <span className="estado pendiente">
                           <span className="estado-punto"></span>
                           Pendiente
                         </span>
@@ -193,7 +195,7 @@ function MisPagosPage({ notificar }) {
         <div className="encabezado-listado">
           <div className="titulo-listado">
             <div>
-              <span className="sobretitulo">HISTORIAL</span>
+              <span className="sobretitulo">Historial</span>
               <h2>Pagos realizados</h2>
             </div>
 
@@ -270,7 +272,7 @@ function MisPagosPage({ notificar }) {
               <tbody>
                 {pagos.map((pago) => (
                   <tr key={pago.id}>
-                    <td data-label="Fecha">{pago.fecha_pago}</td>
+                    <td data-label="Fecha">{formatearFecha(pago.fecha_pago)}</td>
                     <td data-label="Concepto">{pago.concepto}</td>
                     <td data-label="Período">{pago.periodo}</td>
                     <td data-label="Valor">{moneda.format(pago.valor)}</td>

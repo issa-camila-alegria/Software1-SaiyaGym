@@ -17,7 +17,7 @@ export default function AuthProvider({ children }) {
   // Si el servidor dice que la sesión ya no sirve, se vuelve al login con un aviso.
   const sesionVencida = useCallback(() => {
     cerrarSesion();
-    setAvisoSesion("Tu sesión terminó. Ingresa nuevamente.");
+    setAvisoSesion("Tu sesión no es válida o expiró. Inicia sesión de nuevo.");
   }, [cerrarSesion]);
 
   // Al abrir la app: si hay token guardado se comprueba con el servidor.

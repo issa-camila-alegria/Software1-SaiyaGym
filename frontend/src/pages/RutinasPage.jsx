@@ -244,7 +244,7 @@ function RutinasPage({ notificar }) {
     <>
       <section className="bienvenida">
         <div>
-          <span className="sobretitulo">PANEL DEL ENTRENADOR</span>
+          <span className="sobretitulo">Panel del entrenador</span>
           <h2>Gestión de rutinas</h2>
           <p>
             Crea rutinas de entrenamiento, ajústalas según el progreso
@@ -278,7 +278,7 @@ function RutinasPage({ notificar }) {
         <div className="encabezado-tarjeta">
           <div>
             <span className="sobretitulo">
-              {editando !== null ? "MODIFICACIÓN" : "NUEVA RUTINA"}
+              {editando !== null ? "Modificación" : "Nueva rutina"}
             </span>
 
             <h2>
@@ -424,7 +424,7 @@ function RutinasPage({ notificar }) {
         <section className="tarjeta">
           <div className="encabezado-tarjeta">
             <div>
-              <span className="sobretitulo">DETALLE DE LA RUTINA</span>
+              <span className="sobretitulo">Detalle de la rutina</span>
               <h2>{detalle.nombre}</h2>
             </div>
 
@@ -444,7 +444,7 @@ function RutinasPage({ notificar }) {
       <section className="tarjeta">
         <div className="encabezado-tarjeta">
           <div>
-            <span className="sobretitulo">ASIGNACIÓN</span>
+            <span className="sobretitulo">Asignación</span>
             <h2>Asignar rutina a un usuario</h2>
           </div>
 
@@ -503,7 +503,7 @@ function RutinasPage({ notificar }) {
         <div className="encabezado-listado">
           <div className="titulo-listado">
             <div>
-              <span className="sobretitulo">CATÁLOGO</span>
+              <span className="sobretitulo">Catálogo</span>
               <h2>Rutinas registradas</h2>
             </div>
 
@@ -555,6 +555,12 @@ function RutinasPage({ notificar }) {
                         <button
                           className="boton-editar"
                           type="button"
+                          disabled={rutina.entrenador_id !== entrenadorActual.id}
+                          title={
+                            rutina.entrenador_id !== entrenadorActual.id
+                              ? "Solo quien creó la rutina puede modificarla."
+                              : undefined
+                          }
                           onClick={() => editarRutina(rutina.id)}
                         >
                           Modificar

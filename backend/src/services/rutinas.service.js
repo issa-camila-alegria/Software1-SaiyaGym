@@ -73,6 +73,20 @@ function validarRutina(cuerpo) {
 
     const posicion = indice + 1;
 
+    // Un número con decimales (10.5) no es ejecutable: se avisa con claridad.
+    const crudo = (valor) => comoTexto(valor);
+    if (
+      (crudo(item?.series) && ejercicio.series === null) ||
+      (crudo(item?.repeticiones) && ejercicio.repeticiones === null)
+    ) {
+      throw new AppError(
+        400,
+        "DATOS_INVALIDOS",
+        `En el ejercicio ${posicion}, las series y las repeticiones deben ser números enteros.`,
+        ["ejercicios"]
+      );
+    }
+
     if (
       !ejercicio.nombre ||
       ejercicio.series === null ||
@@ -107,9 +121,21 @@ function validarRutina(cuerpo) {
   return { nombre, objetivo, ejercicios };
 }
 
+async function exigirNombreLibre(nombre, excluirId = null) {
+  if (await repositorio.buscarPorNombre(nombre, excluirId)) {
+    throw new AppError(
+      409,
+      "RUTINA_DUPLICADA",
+      "Ya existe una rutina con ese nombre. Usa otro para distinguirla (por ejemplo, agrega el nivel).",
+      ["nombre"]
+    );
+  }
+}
+
 // E2-HU1: la rutina queda a nombre del entrenador que la crea.
 export async function crear(cuerpo, entrenador) {
   const datos = validarRutina(cuerpo);
+  await exigirNombreLibre(datos.nombre);
 
   const id = await conTransaccion(async (cliente) => {
     const rutinaId = await repositorio.crear(cliente, {
@@ -138,8 +164,8 @@ export async function obtener(idCrudo) {
   return rutina;
 }
 
-// E2-HU3: cualquier entrenador del gimnasio puede ajustar una rutina.
-export async function actualizar(idCrudo, cuerpo) {
+// E2-HU3: cada rutina la modifica solo el entrenador que la creó.
+export async function actualizar(idCrudo, cuerpo, actor) {
   const id = leerId(idCrudo, "id de rutina");
   const existente = await repositorio.obtenerPorId(id);
 
@@ -147,7 +173,16 @@ export async function actualizar(idCrudo, cuerpo) {
     throw new AppError(404, "RUTINA_NO_ENCONTRADA", "La rutina no fue encontrada.");
   }
 
+  if (existente.entrenador_id !== actor.id) {
+    throw new AppError(
+      403,
+      "SIN_PERMISO",
+      "No tienes permiso para realizar esta acción."
+    );
+  }
+
   const datos = validarRutina(cuerpo);
+  await exigirNombreLibre(datos.nombre, id);
 
   await conTransaccion(async (cliente) => {
     await repositorio.actualizar(cliente, id, datos);

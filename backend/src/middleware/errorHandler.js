@@ -38,7 +38,9 @@ export function manejarErrores(error, req, res, next) {
 
   // Violación de la restricción UNIQUE del documento (por ejemplo,
   // dos registros simultáneos con el mismo documento).
-  if (error.code === "23505" && error.constraint === "usuarios_documento_uk") {
+  if (error.code === "23505" &&
+    (error.constraint === "personas_documento_uk" ||
+      error.constraint === "usuarios_documento_uk")) {
     return res.status(409).json({
       ok: false,
       error: {

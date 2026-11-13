@@ -38,7 +38,10 @@ function LoginPage() {
           <img className="login-logo" src={logo} alt="Logo de SAIYAGYM: fuerza y bienestar" />
           <h1>SAIYAGYM</h1>
           <p>SISTEMA DE GESTIÓN PARA GIMNASIOS</p>
+          <span className="login-lema">Fuerza y bienestar, en un solo lugar.</span>
         </div>
+
+        <div className="login-panel">
 
         <h2>Iniciar sesión</h2>
 
@@ -97,6 +100,7 @@ function LoginPage() {
         <p className="login-ayuda">
           ¿No tienes acceso? Solicítalo al administrador del gimnasio.
         </p>
+        </div>
       </section>
     </main>
   );

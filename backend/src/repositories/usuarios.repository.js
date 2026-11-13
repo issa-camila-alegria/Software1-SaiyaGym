@@ -22,6 +22,10 @@ const COLUMNAS =
 // Escapa los comodines de LIKE para que "%" o "_" se busquen como texto normal.
 const escaparLike = (texto) => texto.replace(/[\\%_]/g, "\\$&");
 
+// Minúsculas y sin tildes (la ñ se conserva: «año» y «ano» son palabras distintas).
+const SIN_TILDES = (expresion) =>
+  `translate(lower(${expresion}), 'áéíóúü', 'aeiouu')`;
+
 export async function crear({ nombre, documento, telefono, correo, rol, contrasenaHash }) {
   return conTransaccion(async (cliente) => {
     const { rows } = await cliente.query(
@@ -44,9 +48,11 @@ export async function listar({ buscar, rol, estado } = {}) {
   const valores = [];
 
   if (buscar) {
+    // La búsqueda ignora mayúsculas y tildes ("perez" encuentra "Pérez").
     valores.push(`%${escaparLike(buscar)}%`);
     condiciones.push(
-      `(nombre ILIKE $${valores.length} OR documento ILIKE $${valores.length})`
+      `(${SIN_TILDES("nombre")} LIKE ${SIN_TILDES(`$${valores.length}`)}
+        OR ${SIN_TILDES("documento")} LIKE ${SIN_TILDES(`$${valores.length}`)})`
     );
   }
 
@@ -96,6 +102,17 @@ export async function buscarPorDocumento(documento, excluirId = null) {
     `SELECT id FROM personas
       WHERE documento = $1 AND ($2::int IS NULL OR id <> $2::int)`,
     [documento, excluirId]
+  );
+
+  return rows[0] ?? null;
+}
+
+/** Busca un usuario con ese correo (sin importar mayúsculas). */
+export async function buscarPorCorreo(correo, excluirId = null) {
+  const { rows } = await pool.query(
+    `SELECT id FROM personas
+      WHERE lower(correo) = lower($1) AND ($2::int IS NULL OR id <> $2::int)`,
+    [correo, excluirId]
   );
 
   return rows[0] ?? null;

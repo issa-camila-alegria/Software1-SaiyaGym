@@ -75,7 +75,9 @@ function validarUsuario(cuerpo, { contrasenaObligatoria }) {
     ]);
   }
 
-  if (!patronTelefono.test(datos.telefono)) {
+  const digitosTelefono = (datos.telefono.match(/[0-9]/g) || []).length;
+
+  if (!patronTelefono.test(datos.telefono) || digitosTelefono < 7) {
     problemas.push([
       "telefono",
       "El teléfono debe tener entre 7 y 20 dígitos (puede incluir +, espacios o guiones).",
@@ -119,6 +121,19 @@ async function exigirNoDuplicado(documento, excluirId = null) {
   }
 }
 
+async function exigirCorreoLibre(correo, excluirId = null) {
+  const repetido = await repositorio.buscarPorCorreo(correo, excluirId);
+
+  if (repetido) {
+    throw new AppError(
+      409,
+      "CORREO_DUPLICADO",
+      "Ese correo electrónico ya pertenece a otro usuario.",
+      ["correo"]
+    );
+  }
+}
+
 async function exigirExistente(id) {
   const usuario = await repositorio.obtenerPorId(id);
 
@@ -135,6 +150,7 @@ export async function registrar(cuerpo) {
     contrasenaObligatoria: true,
   });
   await exigirNoDuplicado(datos.documento);
+  await exigirCorreoLibre(datos.correo);
 
   return repositorio.crear({
     ...datos,
@@ -215,6 +231,7 @@ export async function actualizar(idCrudo, cuerpo, actor) {
   }
 
   await exigirNoDuplicado(datos.documento, id);
+  await exigirCorreoLibre(datos.correo, id);
 
   try {
     return await repositorio.actualizar(id, {

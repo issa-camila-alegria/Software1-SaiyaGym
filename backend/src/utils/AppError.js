@@ -14,11 +14,17 @@ export class AppError extends Error {
 }
 
 /** Convierte un id recibido en la URL o el cuerpo en un entero válido. */
-export function leerId(valor, nombre = "id") {
+export function leerId(valor, nombre = "id", femenino = false) {
   const texto = String(valor ?? "").trim();
 
   if (!/^\d+$/.test(texto) || Number(texto) > 2147483647) {
-    throw new AppError(400, "ID_INVALIDO", `El ${nombre} indicado no es válido.`);
+    throw new AppError(
+      400,
+      "ID_INVALIDO",
+      femenino
+        ? `La ${nombre} indicada no es válida.`
+        : `El ${nombre} indicado no es válido.`
+    );
   }
 
   return Number(texto);

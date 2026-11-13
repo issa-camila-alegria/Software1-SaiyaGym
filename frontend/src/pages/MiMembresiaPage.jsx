@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { api } from "../services/api.js";
+import { formatearFecha } from "../utils/formato.js";
 
 const moneda = new Intl.NumberFormat("es-CO", {
   style: "currency",
   currency: "COP",
+  minimumFractionDigits: 0,
   maximumFractionDigits: 2,
 });
 
@@ -24,7 +26,7 @@ const textoEstado = {
 function textoDias(membresia) {
   const dias = membresia.dias_restantes;
 
-  if (membresia.estado === "Por iniciar") return `Inicia el ${membresia.fecha_inicio}`;
+  if (membresia.estado === "Por iniciar") return `Inicia el ${formatearFecha(membresia.fecha_inicio)}`;
   if (dias < 0) return `Venció hace ${-dias} ${dias === -1 ? "día" : "días"}`;
   if (dias === 0) return "Vence hoy";
   return `${dias} ${dias === 1 ? "día" : "días"}`;
@@ -75,7 +77,7 @@ function MiMembresiaPage() {
     <>
       <section className="bienvenida">
         <div>
-          <span className="sobretitulo">PANEL DEL USUARIO</span>
+          <span className="sobretitulo">Panel del usuario</span>
           <h2>Mi membresía</h2>
           <p>
             Consulta si tu membresía está activa, hasta cuándo es válida y el
@@ -138,8 +140,8 @@ function MiMembresiaPage() {
 
             <article className="indicador">
               <span className="indicador-etiqueta">VENCE EL</span>
-              <strong>{m.fecha_fin}</strong>
-              <span className="indicador-descripcion">Inicio de vigencia: {m.fecha_inicio}</span>
+              <strong>{formatearFecha(m.fecha_fin)}</strong>
+              <span className="indicador-descripcion">Inicio de vigencia: {formatearFecha(m.fecha_inicio)}</span>
             </article>
 
             <article className="indicador">
@@ -153,7 +155,7 @@ function MiMembresiaPage() {
             <div className="encabezado-listado">
               <div className="titulo-listado">
                 <div>
-                  <span className="sobretitulo">HISTORIAL</span>
+                  <span className="sobretitulo">Historial</span>
                   <h2>Mis períodos</h2>
                 </div>
 

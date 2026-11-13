@@ -16,7 +16,7 @@ export async function obtener(req, res) {
 }
 
 export async function actualizar(req, res) {
-  const rutina = await servicio.actualizar(req.params.id, req.body);
+  const rutina = await servicio.actualizar(req.params.id, req.body, req.usuario);
   enviar(res, 200, rutina, { mensaje: "Rutina modificada correctamente." });
 }
 

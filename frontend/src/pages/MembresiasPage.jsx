@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../services/api.js";
+import { formatearFecha } from "../utils/formato.js";
 
 const moneda = new Intl.NumberFormat("es-CO", {
   style: "currency",
   currency: "COP",
+  minimumFractionDigits: 0,
   maximumFractionDigits: 2,
 });
 
@@ -285,7 +287,7 @@ function MembresiasPage({ notificar }) {
     <>
       <section className="bienvenida">
         <div>
-          <span className="sobretitulo">PANEL ADMINISTRATIVO</span>
+          <span className="sobretitulo">Panel administrativo</span>
           <h2>Gestión de membresías</h2>
           <p>
             Registra y renueva las membresías de los usuarios, consulta su
@@ -321,7 +323,7 @@ function MembresiasPage({ notificar }) {
       <section className="tarjeta">
         <div className="encabezado-tarjeta">
           <div>
-            <span className="sobretitulo">NUEVO REGISTRO</span>
+            <span className="sobretitulo">Nuevo registro</span>
             <h2>Registrar membresía</h2>
           </div>
 
@@ -405,7 +407,7 @@ function MembresiasPage({ notificar }) {
         <div className="encabezado-listado">
           <div className="titulo-listado">
             <div>
-              <span className="sobretitulo">CONSULTA</span>
+              <span className="sobretitulo">Consulta</span>
               <h2>Membresía de un usuario</h2>
             </div>
 
@@ -469,11 +471,11 @@ function MembresiasPage({ notificar }) {
               </div>
               <div>
                 <dt>Inicio de vigencia</dt>
-                <dd>{m.fecha_inicio}</dd>
+                <dd>{formatearFecha(m.fecha_inicio)}</dd>
               </div>
               <div>
                 <dt>Vencimiento</dt>
-                <dd>{m.fecha_fin}</dd>
+                <dd>{formatearFecha(m.fecha_fin)}</dd>
               </div>
               <div>
                 <dt>Tiempo restante</dt>
@@ -577,7 +579,7 @@ function MembresiasPage({ notificar }) {
         <div className="encabezado-listado">
           <div className="titulo-listado">
             <div>
-              <span className="sobretitulo">VENCIMIENTOS</span>
+              <span className="sobretitulo">Vencimientos</span>
               <h2>Membresías por vencer</h2>
             </div>
 
@@ -673,7 +675,7 @@ function MembresiasPage({ notificar }) {
                     </td>
                     <td data-label="Documento">{membresia.usuario_documento}</td>
                     <td data-label="Tipo">{membresia.tipo}</td>
-                    <td data-label="Vence">{membresia.fecha_fin}</td>
+                    <td data-label="Vence">{formatearFecha(membresia.fecha_fin)}</td>
                     <td data-label="Tiempo restante">{textoDias(membresia)}</td>
                     <td data-label="Estado">
                       <EstadoMembresia estado={membresia.estado} />
@@ -718,7 +720,7 @@ function MembresiasPage({ notificar }) {
         <div className="encabezado-listado">
           <div className="titulo-listado">
             <div>
-              <span className="sobretitulo">LISTADO</span>
+              <span className="sobretitulo">Listado</span>
               <h2>Todas las membresías</h2>
             </div>
 
@@ -775,8 +777,8 @@ function MembresiasPage({ notificar }) {
                     </td>
                     <td data-label="Documento">{membresia.usuario_documento}</td>
                     <td data-label="Tipo">{membresia.tipo}</td>
-                    <td data-label="Inicio">{membresia.fecha_inicio}</td>
-                    <td data-label="Vence">{membresia.fecha_fin}</td>
+                    <td data-label="Inicio">{formatearFecha(membresia.fecha_inicio)}</td>
+                    <td data-label="Vence">{formatearFecha(membresia.fecha_fin)}</td>
                     <td data-label="Estado">
                       <EstadoMembresia estado={membresia.estado} />
                     </td>

@@ -125,9 +125,7 @@ function Programa({ usuario, cerrarSesion }) {
 
         <footer className="pie-pagina">
           <span>SAIYAGYM</span>
-          <span>
-            {modulo.nombre} · Sprint {modulo.sprint}
-          </span>
+          <span>{modulo.nombre}</span>
         </footer>
       </main>
     </div>

@@ -1,3 +1,6 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import cors from "cors";
 import express from "express";
 import { config } from "./config/env.js";
@@ -51,6 +54,14 @@ app.use("/api/asignaciones", autenticar, autorizar("entrenador"), asignacionesRo
 app.use("/api/mi-rutina", autenticar, autorizar("usuario"), miRutinaRoutes);
 app.use("/api/mis-pagos", autenticar, autorizar("usuario"), misPagosRoutes);
 app.use("/api/mi-membresia", autenticar, autorizar("usuario"), miMembresiaRoutes);
+
+// En producción, el mismo servidor entrega la página (frontend/dist) y la API:
+// así se usa una sola dirección web y no hace falta configurar CORS.
+const carpetaWeb = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../frontend/dist");
+if (existsSync(carpetaWeb)) {
+  app.use(express.static(carpetaWeb));
+  app.get(/^\/(?!api(\/|$)).*/, (req, res) => res.sendFile(path.join(carpetaWeb, "index.html")));
+}
 
 app.use(rutaNoEncontrada);
 app.use(manejarErrores);

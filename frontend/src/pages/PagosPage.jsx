@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../services/api.js";
+import { formatearFecha } from "../utils/formato.js";
 
 const moneda = new Intl.NumberFormat("es-CO", {
   style: "currency",
   currency: "COP",
+  minimumFractionDigits: 0,
   maximumFractionDigits: 2,
 });
 
@@ -211,7 +213,7 @@ function PagosPage({ notificar }) {
     <>
       <section className="bienvenida">
         <div>
-          <span className="sobretitulo">PANEL ADMINISTRATIVO</span>
+          <span className="sobretitulo">Panel administrativo</span>
           <h2>Gestión de pagos</h2>
           <p>
             Registra los pagos realizados por los usuarios, genera cobros
@@ -228,7 +230,7 @@ function PagosPage({ notificar }) {
       <section className="tarjeta">
         <div className="encabezado-tarjeta">
           <div>
-            <span className="sobretitulo">NUEVO REGISTRO</span>
+            <span className="sobretitulo">Nuevo registro</span>
             <h2>Registrar pago</h2>
           </div>
 
@@ -305,7 +307,7 @@ function PagosPage({ notificar }) {
       <section className="tarjeta">
         <div className="encabezado-tarjeta">
           <div>
-            <span className="sobretitulo">NUEVO COBRO</span>
+            <span className="sobretitulo">Nuevo cobro</span>
             <h2>Generar cobro pendiente</h2>
           </div>
 
@@ -401,7 +403,7 @@ function PagosPage({ notificar }) {
         <div className="encabezado-listado">
           <div className="titulo-listado">
             <div>
-              <span className="sobretitulo">POR COBRAR</span>
+              <span className="sobretitulo">Por cobrar</span>
               <h2>Pagos pendientes</h2>
             </div>
 
@@ -497,7 +499,7 @@ function PagosPage({ notificar }) {
                     <td data-label="Período">{cobro.periodo}</td>
                     <td data-label="Valor">{moneda.format(cobro.valor)}</td>
                     <td data-label="Estado">
-                      <span className="estado inactivo">
+                      <span className="estado pendiente">
                         <span className="estado-punto"></span>
                         Pendiente
                       </span>
@@ -526,7 +528,7 @@ function PagosPage({ notificar }) {
         <div className="encabezado-listado">
           <div className="titulo-listado">
             <div>
-              <span className="sobretitulo">MOVIMIENTOS</span>
+              <span className="sobretitulo">Movimientos</span>
               <h2>Últimos pagos registrados</h2>
             </div>
 
@@ -589,7 +591,7 @@ function PagosPage({ notificar }) {
                     <td data-label="Concepto">{pago.concepto}</td>
                     <td data-label="Período">{pago.periodo}</td>
                     <td data-label="Valor">{moneda.format(pago.valor)}</td>
-                    <td data-label="Fecha">{pago.fecha_pago}</td>
+                    <td data-label="Fecha">{formatearFecha(pago.fecha_pago)}</td>
                     <td data-label="Acciones">
                       <div className="acciones-tabla">
                         <button

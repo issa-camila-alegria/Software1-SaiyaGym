@@ -78,3 +78,14 @@ export async function obtenerPorId(id) {
 
   return { ...rows[0], ejercicios: ejercicios.rows };
 }
+
+/** Busca otra rutina con el mismo nombre (sin importar mayúsculas ni espacios de más). */
+export async function buscarPorNombre(nombre, excluirId = null) {
+  const { rows } = await pool.query(
+    `SELECT id FROM rutinas
+      WHERE lower(btrim(nombre)) = lower($1) AND ($2::int IS NULL OR id <> $2::int)`,
+    [nombre, excluirId]
+  );
+
+  return rows[0] ?? null;
+}

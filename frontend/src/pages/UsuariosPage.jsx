@@ -159,8 +159,11 @@ function UsuariosPage({ notificar }) {
       setBusquedaActiva(textoBusqueda.trim());
       setErrorCarga(null);
     } catch (error) {
-      // Incluye el caso de criterio de búsqueda vacío.
+      // Incluye el caso de criterio de búsqueda vacío: se avisa y se vuelve a
+      // mostrar el directorio completo, para que la pantalla no quede con el
+      // resultado de una búsqueda anterior ("0 usuarios") junto al aviso.
       notificar("error", error.message);
+      if (!textoBusqueda.trim()) await limpiarBusqueda();
     }
   };
 
@@ -174,7 +177,7 @@ function UsuariosPage({ notificar }) {
     <>
       <section className="bienvenida">
         <div>
-          <span className="sobretitulo">PANEL ADMINISTRATIVO</span>
+          <span className="sobretitulo">Panel administrativo</span>
           <h2>Gestión de usuarios</h2>
           <p>
             Administra y consulta la información de los usuarios
@@ -213,7 +216,7 @@ function UsuariosPage({ notificar }) {
         <div className="encabezado-tarjeta">
           <div>
             <span className="sobretitulo">
-              {editando !== null ? "EDICIÓN DE REGISTRO" : "NUEVO REGISTRO"}
+              {editando !== null ? "Edición de registro" : "Nuevo registro"}
             </span>
 
             <h2>
@@ -342,7 +345,7 @@ function UsuariosPage({ notificar }) {
         <div className="encabezado-listado">
           <div className="titulo-listado">
             <div>
-              <span className="sobretitulo">DIRECTORIO</span>
+              <span className="sobretitulo">Directorio</span>
               <h2>Usuarios registrados</h2>
             </div>
 

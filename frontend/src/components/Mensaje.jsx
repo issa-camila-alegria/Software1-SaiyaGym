@@ -1,9 +1,10 @@
 import { useEffect } from "react";
 
-// Aviso flotante de éxito o error. Desaparece solo a los 5 segundos.
+// Aviso flotante. El de éxito desaparece solo a los 5 segundos; el de error
+// se queda hasta que la persona lo cierre (así alcanza a leerlo y corregir).
 function Mensaje({ mensaje, onCerrar }) {
   useEffect(() => {
-    if (!mensaje) return undefined;
+    if (!mensaje || mensaje.tipo === "error") return undefined;
 
     const temporizador = setTimeout(onCerrar, 5000);
     return () => clearTimeout(temporizador);

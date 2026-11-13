@@ -22,6 +22,21 @@ export async function asignar(cliente, usuarioId, rutinaId) {
   return rows[0];
 }
 
+/** Bloquea la fila del usuario: dos asignaciones a la vez se atienden una tras otra. */
+export async function bloquearUsuario(cliente, usuarioId) {
+  await cliente.query("SELECT id FROM personas WHERE id = $1 FOR UPDATE", [usuarioId]);
+}
+
+/** Asignación vigente dentro de una transacción. */
+export async function vigenteEnTransaccion(cliente, usuarioId) {
+  const { rows } = await cliente.query(
+    "SELECT id, rutina_id FROM asignaciones_rutina WHERE usuario_id = $1 AND vigente",
+    [usuarioId]
+  );
+
+  return rows[0] ?? null;
+}
+
 /** Asignación vigente de un usuario (o null si no tiene). */
 export async function obtenerVigentePorUsuario(usuarioId) {
   const { rows } = await pool.query(

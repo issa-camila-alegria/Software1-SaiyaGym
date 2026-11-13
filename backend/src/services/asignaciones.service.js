@@ -42,12 +42,20 @@ export async function asignar(cuerpo) {
   }
 
   const usuarioId = leerId(cuerpo.usuario_id, "usuario");
-  const rutinaId = leerId(cuerpo.rutina_id, "rutina");
+  const rutinaId = leerId(cuerpo.rutina_id, "rutina", true);
 
   const usuario = await usuarios.obtenerPorId(usuarioId);
 
   if (!usuario) {
     throw new AppError(404, "USUARIO_NO_ENCONTRADO", "El usuario no existe.");
+  }
+
+  if (usuario.rol !== "usuario") {
+    throw new AppError(
+      409,
+      "USUARIO_NO_ELEGIBLE",
+      "Las rutinas solo se asignan a usuarios del gimnasio, no a entrenadores ni administradores."
+    );
   }
 
   if (usuario.estado !== "Activo") {
@@ -72,9 +80,21 @@ export async function asignar(cuerpo) {
     );
   }
 
-  const asignacion = await conTransaccion((cliente) =>
-    asignaciones.asignar(cliente, usuarioId, rutinaId)
-  );
+  const asignacion = await conTransaccion(async (cliente) => {
+    await asignaciones.bloquearUsuario(cliente, usuarioId);
+
+    const vigente = await asignaciones.vigenteEnTransaccion(cliente, usuarioId);
+
+    if (vigente?.rutina_id === rutinaId) {
+      throw new AppError(
+        409,
+        "RUTINA_YA_ASIGNADA",
+        `${usuario.nombre} ya tiene asignada la rutina "${rutina.nombre}".`
+      );
+    }
+
+    return asignaciones.asignar(cliente, usuarioId, rutinaId);
+  });
 
   return { asignacion, usuario, rutina };
 }
