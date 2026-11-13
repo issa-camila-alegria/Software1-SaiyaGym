@@ -12,7 +12,8 @@
     "dev": "node --watch src/server.js",
     "db:init": "node scripts/init-db.js",
     "db:seed": "node scripts/init-db.js --seed",
-    "db:seed:pruebas": "node scripts/init-db.js --pruebas"
+    "db:seed:pruebas": "node scripts/init-db.js --pruebas",
+    "db:seed:masivo": "node scripts/init-db.js --masivo"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

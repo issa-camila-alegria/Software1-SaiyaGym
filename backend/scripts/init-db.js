@@ -2,6 +2,7 @@
 //   npm run db:init   -> crea la base y las tablas
 //   npm run db:seed   -> además inserta usuarios de ejemplo con contraseña (opcional)
 //   npm run db:seed:pruebas -> además carga datos de prueba para todas las funciones (opcional)
+//   npm run db:seed:masivo  -> además carga más de 50 registros por módulo para demostración (opcional)
 
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -16,7 +17,8 @@ const carpetaDatabase = path.resolve(
   "../../database"
 );
 
-const conPruebas = process.argv.includes("--pruebas");
+const conMasivo = process.argv.includes("--masivo");
+const conPruebas = process.argv.includes("--pruebas") || conMasivo;
 const conDatos = process.argv.includes("--seed") || conPruebas;
 
 // Contraseña de los usuarios de ejemplo (solo para pruebas y demostración).
@@ -96,6 +98,16 @@ try {
         [hash]
       );
       console.log("Datos de prueba cargados (usuarios, rutinas, pagos, membresías y asistencias).");
+    }
+
+    if (conMasivo) {
+      await cliente.query(await readFile(path.join(carpetaDatabase, "seed_masivo.sql"), "utf8"));
+      await cliente.query(
+        `UPDATE personas SET contrasena_hash = $1
+          WHERE documento LIKE '3000%' AND contrasena_hash IS NULL`,
+        [hash]
+      );
+      console.log("Datos masivos cargados (más de 50 registros por módulo).");
     }
 
     console.log("Usuarios de ejemplo listos.");

@@ -298,19 +298,19 @@ function MembresiasPage({ notificar }) {
       </section>
 
       <section className="resumen" aria-label="Resumen de membresías">
-        <article className="indicador">
+        <article className="indicador tono-verde">
           <span className="indicador-etiqueta">ACTIVAS</span>
           <strong>{lista.resumen.activas}</strong>
           <span className="indicador-descripcion">Con vigencia al día</span>
         </article>
 
-        <article className="indicador">
+        <article className="indicador tono-ambar">
           <span className="indicador-etiqueta">PRÓXIMAS A VENCER</span>
           <strong>{lista.resumen.proximas}</strong>
           <span className="indicador-descripcion">Vencen en {DIAS_PROXIMA_A_VENCER} días o menos</span>
         </article>
 
-        <article className="indicador">
+        <article className="indicador tono-rojo">
           <span className="indicador-etiqueta">VENCIDAS</span>
           <strong>{lista.resumen.vencidas}</strong>
           <span className="indicador-descripcion">Pendientes de renovar</span>

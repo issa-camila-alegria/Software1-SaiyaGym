@@ -889,6 +889,28 @@ tbody tr:last-child td {
   color: var(--ambar);
 }
 
+/* Racha en riesgo: rojo y con el punto latiendo (se apaga con prefers-reduced-motion). */
+.riesgo {
+  border-color: var(--rojo-borde);
+  background: var(--rojo-fondo);
+  color: var(--rojo);
+}
+
+.riesgo .estado-punto {
+  animation: latido 1.4s ease-in-out infinite;
+}
+
+.interrumpida {
+  border-color: #4a4a4a;
+  background: #1c1c1c;
+  color: #b9b9b9;
+}
+
+@keyframes latido {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.7); opacity: 0.55; }
+}
+
 .por-iniciar {
   border-color: var(--azul-borde);
   background: var(--azul-fondo);
@@ -1708,6 +1730,118 @@ tbody tr:last-child td {
   outline-offset: 2px;
 }
 
+/* Llama y tono de la racha según su estado */
+.llama {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+
+.racha-numero {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.racha-numero .llama {
+  font-size: 52px;
+}
+
+.racha-activa .racha-numero .llama { color: #ff8a1f; filter: drop-shadow(0 0 10px rgb(255 138 31 / 0.55)); }
+.racha-riesgo .racha-numero .llama { color: #ff5a5a; filter: drop-shadow(0 0 10px rgb(255 90 90 / 0.5)); animation: parpadeo-llama 1.8s ease-in-out infinite; }
+.racha-interrumpida .racha-numero .llama,
+.racha-sin .racha-numero .llama { color: #7c776a; }
+
+.racha-activa .indicador-racha strong { color: #ffb15c; }
+.racha-riesgo .indicador-racha strong { color: var(--rojo); }
+.racha-interrumpida .indicador-racha strong,
+.racha-sin .indicador-racha strong { color: var(--texto-suave); }
+
+.racha-activa .indicador-racha { border-color: #7a4a14; }
+.racha-riesgo .indicador-racha { border-color: var(--rojo-borde); background: linear-gradient(160deg, var(--rojo-fondo), var(--panel) 70%); }
+.racha-riesgo .indicador-racha::before { background: #ff5a5a; }
+.racha-interrumpida .indicador-racha::before,
+.racha-sin .indicador-racha::before { background: #5b574d; }
+
+@keyframes parpadeo-llama {
+  0%, 100% { transform: scale(1) rotate(-2deg); }
+  50% { transform: scale(1.08) rotate(2deg); }
+}
+
+.meta-racha {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.meta-racha small {
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+.meta-barra {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--campo);
+}
+
+.meta-barra span {
+  display: block;
+  height: 100%;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--oro-oscuro), var(--oro-claro));
+  transition: width 0.6s ease;
+}
+
+.racha-riesgo .meta-barra span { background: linear-gradient(90deg, #8a2f2f, #ff7a7a); }
+
+.insignias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.insignias li {
+  display: grid;
+  place-items: center;
+  min-width: 36px;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px dashed var(--borde-suave);
+  border-radius: 15px;
+  color: #7c776a;
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.insignias li.lograda {
+  border: 1px solid var(--oro-oscuro);
+  background: var(--oro);
+  color: #1a1407;
+}
+
+/* Aviso rojo cuando hoy se puede perder la racha */
+.accion-asistencia.alerta-riesgo {
+  border-color: var(--rojo-borde);
+  background: linear-gradient(120deg, var(--rojo-fondo), var(--panel) 65%);
+}
+
+.accion-asistencia.alerta-riesgo p {
+  color: var(--rojo);
+  font-weight: 600;
+}
+
+.dia-marca .llama {
+  width: 20px;
+  height: 20px;
+  color: #1a1407;
+}
+
 .sr-solo {
   position: absolute;
   width: 1px;
@@ -1715,6 +1849,17 @@ tbody tr:last-child td {
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .riesgo .estado-punto,
+  .racha-riesgo .racha-numero .llama {
+    animation: none;
+  }
+
+  .meta-barra span {
+    transition: none;
+  }
 }
 
 @media (max-width: 720px) {
@@ -1725,4 +1870,22 @@ tbody tr:last-child td {
   .accion-asistencia .boton-principal {
     width: 100%;
   }
+}
+
+/* ---------- Indicadores con tono de estado ---------- */
+
+.indicador.tono-verde::before { background: var(--verde); }
+.indicador.tono-verde strong { color: var(--verde); }
+.indicador.tono-ambar::before { background: var(--ambar); }
+.indicador.tono-ambar strong { color: var(--ambar); }
+.indicador.tono-rojo::before { background: #ff6b6b; }
+.indicador.tono-rojo strong { color: var(--rojo); }
+
+/* Filas de las tablas: resaltan al pasar el cursor */
+tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+tbody tr:hover {
+  background: var(--panel-claro);
 }

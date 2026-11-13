@@ -1,4 +1,6 @@
 ﻿# Changelog
+## v5.2.0 - Datos masivos y diseño
+Seed masivo (`db:seed:masivo`); racha con llama y colores por estado (En riesgo en rojo), metas e insignias; indicadores con color de estado.
 ## v5.1.0 - Organización del código
 Reglas, límites, roles, mensajes y datos demo centralizados (`backend/src/config/reglas.js`, `frontend/src/config/`). Sin cambios de comportamiento.
 ## v5.0.0 - Sprint 5

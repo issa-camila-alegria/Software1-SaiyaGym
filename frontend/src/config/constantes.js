@@ -48,3 +48,10 @@ export const LIMITES_EJERCICIO = {
 export const IDIOMA = "es-CO";
 export const MONEDA = "COP";
 export const SEGUNDOS_AVISO_EXITO = 5;
+
+// ------------------------------------------------------------- Asistencia
+/** Metas de racha (días seguidos). Cada una se premia con una insignia. */
+export const HITOS_RACHA = [3, 7, 14, 30, 60, 100];
+
+/** Cuántos días se dibujan en la tira de constancia. */
+export const DIAS_TIRA_ASISTENCIA = 14;

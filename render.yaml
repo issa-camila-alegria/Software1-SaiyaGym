@@ -4,7 +4,7 @@ services:
     name: saiyagym
     runtime: node
     plan: free
-    buildCommand: npm install --prefix frontend && npm run build --prefix frontend && npm install --prefix backend
+    buildCommand: npm install --include=dev --prefix frontend && npm run build --prefix frontend && npm install --prefix backend
     startCommand: npm start --prefix backend
     healthCheckPath: /api/salud
     envVars:

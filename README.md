@@ -183,6 +183,16 @@ Ningún servicio ni pantalla escribe a mano una regla o un límite:
 
 Los mensajes de error se arman con esos mismos valores, así el texto y la validación no se contradicen. Para cambiar una regla se edita un solo archivo. El servidor siempre vuelve a validar: los límites del frontend solo ayudan al usuario.
 
+## Datos de demostración
+
+| Comando (en `backend`) | Qué carga |
+|---|---|
+| `npm run db:seed` | 4 usuarios de ejemplo |
+| `npm run db:seed:pruebas` | + casos de prueba de cada estado (Sprints 1 a 5) |
+| `npm run db:seed:masivo` | + más de 50 registros por módulo: 60 usuarios, 52 rutinas, 100 asignaciones, 55 membresías, 240 cobros y más de 1000 asistencias (rachas Activa, En riesgo, Interrumpida y Sin racha). Documentos `3000xxxx`, contraseña `Saiya2026` |
+
+Todos se pueden repetir sin duplicar datos.
+
 ## Solución de problemas
 
 | Mensaje | Causa y solución |
