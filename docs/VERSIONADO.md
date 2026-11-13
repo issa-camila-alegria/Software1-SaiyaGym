@@ -9,7 +9,8 @@ Cada sprint cerrado tiene su rama `release/sprint-N` y su tag. Los commits conse
 | 3 (parcial) | release/sprint-3 | v3.0.0-parcial | 13-23 oct 2026 | Pagos: E3-HU1 y E3-HU2 (faltan E3-HU3 y E3-HU4) |
 | 3 | release/sprint-3 | v3.0.0 | 13-23 oct 2026 | Pagos completos: E3-HU1 a E3-HU4 |
 | 4 | release/sprint-4 | v4.0.0 | 27 oct-6 nov 2026 | Membresías (E4-HU1 a E4-HU4) |
-| 5 | pendiente | - | 10-20 nov 2026 | Asistencia y rachas (E5) |
+| 5 | release/sprint-5 | v5.0.0 | 10-20 nov 2026 | Asistencia y rachas (E5-HU1 a E5-HU4) |
+| 5.1 | main | v5.2.0 | - | Organización del código (sin valores quemados), datos masivos y mejoras de diseño |
 
 Convención: ramas `release/sprint-N`, tags `vN.0.0`, un commit por entrega con mensaje claro.
 Los documentos del proyecto (backlog, historias, casos de prueba, riesgos, diagramas) están en la raíz del repositorio.
