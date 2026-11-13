@@ -9,6 +9,7 @@ import path from "node:path";
 import bcrypt from "bcryptjs";
 import pg from "pg";
 import { config } from "../src/config/env.js";
+import { DEMO } from "../src/config/reglas.js";
 
 const carpetaDatabase = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -19,8 +20,8 @@ const conPruebas = process.argv.includes("--pruebas");
 const conDatos = process.argv.includes("--seed") || conPruebas;
 
 // Contraseña de los usuarios de ejemplo (solo para pruebas y demostración).
-const CONTRASENA_DEMO = "Saiya2026";
-const DOCUMENTOS_DEMO = ["10000001", "10000002", "10000003", "10000004"];
+const CONTRASENA_DEMO = DEMO.contrasena;
+const DOCUMENTOS_DEMO = DEMO.documentos;
 
 async function conectar(baseDeDatos) {
   const cliente = new pg.Client({ ...config.db, database: baseDeDatos, options: `-c timezone=${config.zonaHoraria}` });

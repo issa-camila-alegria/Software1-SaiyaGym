@@ -1,5 +1,9 @@
 import * as repositorio from "../repositories/asistencias.repository.js";
 import * as membresias from "../repositories/membresias.repository.js";
+import {
+  ESTADOS_MEMBRESIA_VIGENTE,
+  LIMITE_HISTORIAL_ASISTENCIA,
+} from "../config/reglas.js";
 import { AppError } from "../utils/AppError.js";
 import { formatearFecha } from "../utils/fechas.js";
 
@@ -14,8 +18,8 @@ import { formatearFecha } from "../utils/fechas.js";
 //  - La racha de ayer sigue "viva" hasta que termine hoy: ese es el estado
 //    "En riesgo" (todavía puedes mantenerla asistiendo hoy).
 
-const LIMITE_HISTORIAL = 366;
-const ESTADOS_VIGENTES = ["Activa", "Próxima a vencer"];
+const LIMITE_HISTORIAL = LIMITE_HISTORIAL_ASISTENCIA;
+const ESTADOS_VIGENTES = ESTADOS_MEMBRESIA_VIGENTE;
 
 const dias = (n) => `${n} ${n === 1 ? "día" : "días"}`;
 

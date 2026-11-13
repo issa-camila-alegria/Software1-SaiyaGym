@@ -1,10 +1,11 @@
 import { pool } from "../config/db.js";
+import { DIAS_PROXIMA_A_VENCER } from "../config/reglas.js";
 
 // Capa de acceso a datos de membresías (Sprint 4).
 // Solo SQL, siempre con consultas parametrizadas.
 
 /** Una membresía vence "pronto" cuando le quedan este número de días o menos. */
-export const DIAS_PROXIMA_A_VENCER = 5;
+export { DIAS_PROXIMA_A_VENCER };
 
 // El estado no se guarda: se calcula con la fecha de hoy.
 // DIAS_PROXIMA_A_VENCER es una constante del código (nunca viene del usuario).

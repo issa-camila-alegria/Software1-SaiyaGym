@@ -1,21 +1,17 @@
 import { conTransaccion } from "../config/db.js";
 import * as repositorio from "../repositories/membresias.repository.js";
 import * as usuarios from "../repositories/usuarios.repository.js";
+import {
+  DIAS_MAXIMOS_CONSULTA,
+  DIAS_PARA_RENOVAR,
+  DIAS_PROXIMA_A_VENCER,
+  FILTROS_VENCIMIENTO,
+  MESES_POR_TIPO,
+  VALOR_MAXIMO,
+} from "../config/reglas.js";
 import { AppError, leerId } from "../utils/AppError.js";
 
 // Capa de lógica de negocio de membresías (Sprint 4: E4-HU1 a E4-HU4).
-
-const { DIAS_PROXIMA_A_VENCER } = repositorio;
-
-/** Tipos de membresía y su duración en meses. */
-const MESES_POR_TIPO = { Mensual: 1, Trimestral: 3, Semestral: 6, Anual: 12 };
-
-/** Solo se puede renovar si vence en este número de días o menos (o ya venció). */
-const DIAS_PARA_RENOVAR = 30;
-
-const DIAS_MAXIMOS_CONSULTA = 365;
-const FILTROS_VENCIMIENTO = ["proximas", "vencidas", "todas"];
-const VALOR_MAXIMO = 9999999999.99; // NUMERIC(12,2)
 
 const vacio = (valor) =>
   valor === undefined || valor === null || String(valor).trim() === "";

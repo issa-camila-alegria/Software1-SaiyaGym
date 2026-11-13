@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import DetalleRutina from "../components/DetalleRutina.jsx";
 import { useAuth } from "../auth/useAuth.js";
+import { ESTADO_INACTIVO, LIMITES_EJERCICIO } from "../config/constantes.js";
 import { api } from "../services/api.js";
 
 const asignacionInicial = { usuario_id: "", rutina_id: "" };
@@ -344,8 +345,8 @@ function RutinasPage({ notificar }) {
                   Series
                   <input
                     type="number"
-                    min="1"
-                    max="20"
+                    min={LIMITES_EJERCICIO.series.min}
+                    max={LIMITES_EJERCICIO.series.max}
                     inputMode="numeric"
                     placeholder="4"
                     value={ejercicio.series}
@@ -359,8 +360,8 @@ function RutinasPage({ notificar }) {
                   Repeticiones
                   <input
                     type="number"
-                    min="1"
-                    max="200"
+                    min={LIMITES_EJERCICIO.repeticiones.min}
+                    max={LIMITES_EJERCICIO.repeticiones.max}
                     inputMode="numeric"
                     placeholder="10"
                     value={ejercicio.repeticiones}
@@ -464,7 +465,7 @@ function RutinasPage({ notificar }) {
               {usuarios.map((usuario) => (
                 <option key={usuario.id} value={usuario.id}>
                   {usuario.nombre} · {usuario.documento}
-                  {usuario.estado === "Inactivo" ? " (inactivo)" : ""}
+                  {usuario.estado === ESTADO_INACTIVO ? " (inactivo)" : ""}
                 </option>
               ))}
             </select>

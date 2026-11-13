@@ -1,5 +1,6 @@
 import { conTransaccion } from "../config/db.js";
 import * as repositorio from "../repositories/rutinas.repository.js";
+import { RUTINA } from "../config/reglas.js";
 import { AppError, leerId } from "../utils/AppError.js";
 
 // Capa de lógica de negocio de rutinas (Sprint 2: E2-HU1 y E2-HU3).
@@ -35,11 +36,11 @@ function validarRutina(cuerpo) {
     );
   }
 
-  if (nombre.length > 120 || objetivo.length > 255) {
+  if (nombre.length > RUTINA.nombreMax || objetivo.length > RUTINA.objetivoMax) {
     throw new AppError(
       400,
       "DATOS_INVALIDOS",
-      "El nombre admite máximo 120 caracteres y el objetivo máximo 255.",
+      `El nombre admite máximo ${RUTINA.nombreMax} caracteres y el objetivo máximo ${RUTINA.objetivoMax}.`,
       ["nombre", "objetivo"]
     );
   }
@@ -101,16 +102,16 @@ function validarRutina(cuerpo) {
     }
 
     if (
-      ejercicio.nombre.length > 120 ||
-      ejercicio.series < 1 ||
-      ejercicio.series > 20 ||
-      ejercicio.repeticiones < 1 ||
-      ejercicio.repeticiones > 200
+      ejercicio.nombre.length > RUTINA.ejercicio.nombreMax ||
+      ejercicio.series < RUTINA.ejercicio.series.min ||
+      ejercicio.series > RUTINA.ejercicio.series.max ||
+      ejercicio.repeticiones < RUTINA.ejercicio.repeticiones.min ||
+      ejercicio.repeticiones > RUTINA.ejercicio.repeticiones.max
     ) {
       throw new AppError(
         400,
         "DATOS_INVALIDOS",
-        `El ejercicio ${posicion} no es válido: series entre 1 y 20, repeticiones entre 1 y 200 y nombre de máximo 120 caracteres.`,
+        `El ejercicio ${posicion} no es válido: series entre ${RUTINA.ejercicio.series.min} y ${RUTINA.ejercicio.series.max}, repeticiones entre ${RUTINA.ejercicio.repeticiones.min} y ${RUTINA.ejercicio.repeticiones.max} y nombre de máximo ${RUTINA.ejercicio.nombreMax} caracteres.`,
         ["ejercicios"]
       );
     }

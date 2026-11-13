@@ -1,4 +1,5 @@
 import { conTransaccion, pool } from "../config/db.js";
+import { TABLA_POR_ROL } from "../config/reglas.js";
 
 // Capa de acceso a datos: aquí solo hay SQL (siempre con consultas
 // parametrizadas: los valores van en $1, $2... nunca pegados al texto).
@@ -10,11 +11,7 @@ import { conTransaccion, pool } from "../config/db.js";
 // o usuarios). Aquí se mantienen las dos al crear o cambiar de rol.
 
 // Tabla del subtipo según el rol (valores fijos: nunca vienen del usuario).
-const TABLA_ROL = {
-  administrador: "administradores",
-  entrenador: "entrenadores",
-  usuario: "usuarios",
-};
+const TABLA_ROL = TABLA_POR_ROL;
 
 const COLUMNAS =
   "id, nombre, documento, telefono, correo, rol, estado, creado_en, actualizado_en";

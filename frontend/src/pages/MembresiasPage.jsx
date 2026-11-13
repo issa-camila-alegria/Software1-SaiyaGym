@@ -1,18 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  DIAS_PARA_RENOVAR,
+  DIAS_PROXIMA_A_VENCER,
+  ESTADO_ACTIVO,
+  FILTRO_VENCIMIENTO_POR_DEFECTO,
+  OPCIONES_DIAS_VENCIMIENTO,
+  TIPOS_MEMBRESIA as TIPOS,
+  TIPO_MEMBRESIA_POR_DEFECTO,
+} from "../config/constantes.js";
 import { api } from "../services/api.js";
-import { formatearFecha } from "../utils/formato.js";
-
-const moneda = new Intl.NumberFormat("es-CO", {
-  style: "currency",
-  currency: "COP",
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 2,
-});
-
-const TIPOS = ["Mensual", "Trimestral", "Semestral", "Anual"];
-
-// Debe coincidir con la regla del servidor (DIAS_PARA_RENOVAR): el servidor es quien la exige.
-const DIAS_PARA_RENOVAR = 30;
+import { formatearFecha, moneda } from "../utils/formato.js";
 
 const claseEstado = {
   Activa: "activo",
@@ -42,7 +39,7 @@ function textoDias(membresia) {
 
 const formularioInicial = () => ({
   usuario_id: "",
-  tipo: "Mensual",
+  tipo: TIPO_MEMBRESIA_POR_DEFECTO,
   valor: "",
   fecha_inicio: "",
 });
@@ -71,19 +68,19 @@ function MembresiasPage({ notificar }) {
   // E4-HU2 y E4-HU3
   const [usuarioConsulta, setUsuarioConsulta] = useState("");
   const [detalle, setDetalle] = useState(null); // { usuario?, membresia, historial, alerta }
-  const [formularioRenovar, setFormularioRenovar] = useState({ tipo: "Mensual", valor: "" });
+  const [formularioRenovar, setFormularioRenovar] = useState({ tipo: TIPO_MEMBRESIA_POR_DEFECTO, valor: "" });
   const [erroresRenovar, setErroresRenovar] = useState({});
   const [renovando, setRenovando] = useState(false);
   const tarjetaDetalle = useRef(null);
 
   // E4-HU4
-  const [filtroDias, setFiltroDias] = useState("5");
-  const [filtroTipo, setFiltroTipo] = useState("proximas");
+  const [filtroDias, setFiltroDias] = useState(String(DIAS_PROXIMA_A_VENCER));
+  const [filtroTipo, setFiltroTipo] = useState(FILTRO_VENCIMIENTO_POR_DEFECTO);
   const [vencimientos, setVencimientos] = useState({
     membresias: [],
     resumen: { cantidad: 0 },
-    dias: 5,
-    filtro: "proximas",
+    dias: DIAS_PROXIMA_A_VENCER,
+    filtro: FILTRO_VENCIMIENTO_POR_DEFECTO,
   });
   const [errorVencimientos, setErrorVencimientos] = useState(null);
   const [alertandoId, setAlertandoId] = useState(null);
@@ -127,7 +124,7 @@ function MembresiasPage({ notificar }) {
     Promise.all([
       api.membresias.usuarios(),
       api.membresias.listar(),
-      api.membresias.vencimientos({ dias: 5, filtro: "proximas" }),
+      api.membresias.vencimientos({ dias: DIAS_PROXIMA_A_VENCER, filtro: FILTRO_VENCIMIENTO_POR_DEFECTO }),
     ])
       .then(([respUsuarios, respLista, respVencimientos]) => {
         if (!vigente) return;
@@ -278,7 +275,7 @@ function MembresiasPage({ notificar }) {
   };
 
   const usuariosSinMembresia = usuarios.filter(
-    (usuario) => !usuario.tiene_membresia && usuario.estado === "Activo"
+    (usuario) => !usuario.tiene_membresia && usuario.estado === ESTADO_ACTIVO
   );
   const m = detalle?.membresia;
   const puedeRenovar = m && m.dias_restantes <= DIAS_PARA_RENOVAR;
@@ -310,7 +307,7 @@ function MembresiasPage({ notificar }) {
         <article className="indicador">
           <span className="indicador-etiqueta">PRÓXIMAS A VENCER</span>
           <strong>{lista.resumen.proximas}</strong>
-          <span className="indicador-descripcion">Vencen en 5 días o menos</span>
+          <span className="indicador-descripcion">Vencen en {DIAS_PROXIMA_A_VENCER} días o menos</span>
         </article>
 
         <article className="indicador">
@@ -609,10 +606,11 @@ function MembresiasPage({ notificar }) {
                 aria-label="Días de anticipación"
                 disabled={filtroTipo === "vencidas"}
               >
-                <option value="5">En 5 días o menos</option>
-                <option value="10">En 10 días o menos</option>
-                <option value="15">En 15 días o menos</option>
-                <option value="30">En 30 días o menos</option>
+                {OPCIONES_DIAS_VENCIMIENTO.map((dias) => (
+                  <option key={dias} value={dias}>
+                    En {dias} días o menos
+                  </option>
+                ))}
               </select>
             </label>
 

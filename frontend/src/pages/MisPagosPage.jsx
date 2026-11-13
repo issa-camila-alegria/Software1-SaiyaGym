@@ -1,13 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../services/api.js";
-import { formatearFecha } from "../utils/formato.js";
-
-const moneda = new Intl.NumberFormat("es-CO", {
-  style: "currency",
-  currency: "COP",
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 2,
-});
+import { formatearFecha, moneda } from "../utils/formato.js";
 
 // Sprint 3 - E3-HU2: el usuario consulta SU historial de pagos y
 // E3-HU3: sus pagos pendientes.

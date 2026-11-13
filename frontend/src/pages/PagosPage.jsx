@@ -1,13 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
+import { ESTADO_ACTIVO } from "../config/constantes.js";
 import { api } from "../services/api.js";
-import { formatearFecha } from "../utils/formato.js";
-
-const moneda = new Intl.NumberFormat("es-CO", {
-  style: "currency",
-  currency: "COP",
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 2,
-});
+import { formatearFecha, moneda } from "../utils/formato.js";
 
 const periodoActual = () => {
   const hoy = new Date();
@@ -252,7 +246,7 @@ function PagosPage({ notificar }) {
               {usuarios.map((usuario) => (
                 <option key={usuario.id} value={usuario.id}>
                   {usuario.nombre} · {usuario.documento}
-                  {usuario.estado !== "Activo" ? " (inactivo)" : ""}
+                  {usuario.estado !== ESTADO_ACTIVO ? " (inactivo)" : ""}
                 </option>
               ))}
             </select>
@@ -329,7 +323,7 @@ function PagosPage({ notificar }) {
               {usuarios.map((usuario) => (
                 <option key={usuario.id} value={usuario.id}>
                   {usuario.nombre} · {usuario.documento}
-                  {usuario.estado !== "Activo" ? " (inactivo)" : ""}
+                  {usuario.estado !== ESTADO_ACTIVO ? " (inactivo)" : ""}
                 </option>
               ))}
             </select>

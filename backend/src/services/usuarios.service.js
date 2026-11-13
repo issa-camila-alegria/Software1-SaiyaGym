@@ -1,27 +1,23 @@
 import * as repositorio from "../repositories/usuarios.repository.js";
 import { AppError, leerId } from "../utils/AppError.js";
 import {
+  ESTADOS_USUARIO as ESTADOS,
   MENSAJE_CONTRASENA,
-  cifrarContrasena,
-  contrasenaValida,
-} from "./auth.service.js";
+  PATRON_CORREO,
+  PATRON_DOCUMENTO,
+  PATRON_TELEFONO,
+  ROLES,
+  ROL_POR_DEFECTO,
+  USUARIO,
+} from "../config/reglas.js";
+import { cifrarContrasena, contrasenaValida } from "./auth.service.js";
 
 // Capa de lógica de negocio del módulo de usuarios (Sprint 1).
 // Solo el administrador puede llegar aquí (lo controla el middleware).
 
-const ETIQUETAS = {
-  nombre: "Nombre completo",
-  documento: "Número de documento",
-  telefono: "Teléfono",
-  correo: "Correo electrónico",
-};
+const ETIQUETAS = USUARIO.etiquetas;
 
-export const ROLES = ["administrador", "entrenador", "usuario"];
-export const ESTADOS = ["Activo", "Inactivo"];
-
-const patronDocumento = /^[A-Za-z0-9]{4,20}$/;
-const patronTelefono = /^\+?[0-9\s-]{7,20}$/;
-const patronCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export { ESTADOS, ROLES };
 
 const comoTexto = (valor) =>
   typeof valor === "string" || typeof valor === "number"
@@ -39,7 +35,7 @@ function validarUsuario(cuerpo, { contrasenaObligatoria }) {
     documento: comoTexto(cuerpo?.documento).toUpperCase(),
     telefono: comoTexto(cuerpo?.telefono),
     correo: comoTexto(cuerpo?.correo).toLowerCase(),
-    rol: comoTexto(cuerpo?.rol).toLowerCase() || "usuario",
+    rol: comoTexto(cuerpo?.rol).toLowerCase() || ROL_POR_DEFECTO,
   };
 
   const contrasena =
@@ -64,32 +60,32 @@ function validarUsuario(cuerpo, { contrasenaObligatoria }) {
 
   const problemas = [];
 
-  if (datos.nombre.length > 120) {
-    problemas.push(["nombre", "El nombre debe tener máximo 120 caracteres."]);
+  if (datos.nombre.length > USUARIO.nombreMax) {
+    problemas.push(["nombre", `El nombre debe tener máximo ${USUARIO.nombreMax} caracteres.`]);
   }
 
-  if (!patronDocumento.test(datos.documento)) {
+  if (!PATRON_DOCUMENTO.test(datos.documento)) {
     problemas.push([
       "documento",
-      "El documento debe tener entre 4 y 20 letras o números, sin espacios.",
+      `El documento debe tener entre ${USUARIO.documento.min} y ${USUARIO.documento.max} letras o números, sin espacios.`,
     ]);
   }
 
   const digitosTelefono = (datos.telefono.match(/[0-9]/g) || []).length;
 
-  if (!patronTelefono.test(datos.telefono) || digitosTelefono < 7) {
+  if (!PATRON_TELEFONO.test(datos.telefono) || digitosTelefono < USUARIO.telefono.min) {
     problemas.push([
       "telefono",
-      "El teléfono debe tener entre 7 y 20 dígitos (puede incluir +, espacios o guiones).",
+      `El teléfono debe tener entre ${USUARIO.telefono.min} y ${USUARIO.telefono.max} dígitos (puede incluir +, espacios o guiones).`,
     ]);
   }
 
-  if (!patronCorreo.test(datos.correo) || datos.correo.length > 120) {
+  if (!PATRON_CORREO.test(datos.correo) || datos.correo.length > USUARIO.correoMax) {
     problemas.push(["correo", "Ingresa un correo electrónico válido."]);
   }
 
   if (!ROLES.includes(datos.rol)) {
-    problemas.push(["rol", "El rol debe ser administrador, entrenador o usuario."]);
+    problemas.push(["rol", `El rol debe ser ${ROLES.slice(0, -1).join(", ")} o ${ROLES.at(-1)}.`]);
   }
 
   if (contrasena && !contrasenaValida(contrasena)) {

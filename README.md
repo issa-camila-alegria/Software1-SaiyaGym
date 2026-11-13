@@ -12,7 +12,6 @@ Sistema web para la gestión de gimnasios (proyecto universitario de Ingeniería
 | 2 | Gestión de rutinas | E2-HU1 Crear · E2-HU2 Asignar · E2-HU3 Modificar · E2-HU4 Consultar rutina asignada |
 | 3 | Gestión de pagos | E3-HU1 Registrar pago (administrador) · E3-HU2 Historial de pagos (usuario) · E3-HU3 Consultar pagos pendientes (administrador y usuario) · E3-HU4 Actualizar el estado de un pago (administrador) |
 | 4 | Gestión de membresías | E4-HU1 Registrar membresía · E4-HU2 Consultar la membresía de un usuario (administrador) y la propia (usuario) · E4-HU3 Renovar membresía · E4-HU4 Consultar vencimientos y generar alertas |
-| 5 | Asistencia y rachas | E5-HU1 Registrar mi asistencia · E5-HU2 Consultar mi historial de asistencia · E5-HU3 Gestionar mi racha · E5-HU4 Consultar mis días consecutivos |
 
 ## Un programa distinto para cada perfil
 
@@ -22,11 +21,11 @@ Hay que **iniciar sesión** (documento + contraseña). Según el rol, la persona
 |---|---|---|
 | **Administrador** | Gestión de usuarios (registrar, buscar, editar, activar/inactivar, asignar contraseña) registro de pagos, cobros pendientes y cambio de estado de los pagos, membresías (registrar, consultar, renovar, vencimientos y alertas) | Rutinas, asignaciones, "Mi rutina" |
 | **Entrenador** | Crear/modificar rutinas y asignarlas a usuarios | Gestión de usuarios, "Mi rutina" |
-| **Usuario** | Solo su propia rutina asignada, su historial de pagos, su membresía y su asistencia (registrarla, ver su historial y su racha) | Todo lo demás |
+| **Usuario** | Solo su propia rutina asignada, su historial de pagos y su membresía | Todo lo demás |
 
 La restricción **se aplica en el servidor** (la API responde 403 si un perfil llama a rutas que no le corresponden), no solo ocultando botones.
 
-Los Sprints 1 a 5 están completos (usuarios, rutinas, pagos, membresías, asistencia y rachas). Fidelización y logros (Sprint 6) **no** están incluidos.
+Los Sprints 1 a 4 están completos (usuarios, rutinas, pagos y membresías). Asistencia y rachas (Sprint 5) **no** están incluidos.
 
 ## Estructura
 
@@ -35,9 +34,11 @@ SAIYAGYM/
 ├── frontend/    React + Vite (interfaz)
 │   └── src/
 │       ├── auth/         sesión (AuthProvider, useAuth, token en sessionStorage)
-│       ├── pages/        LoginPage, UsuariosPage, RutinasPage, MiRutinaPage, PagosPage, MisPagosPage, MembresiasPage, MiMembresiaPage
+│       ├── config/       constantes.js (roles, tipos, límites, opciones) y modulos.js (pantallas por perfil)
+│       ├── pages/        LoginPage, UsuariosPage, RutinasPage, MiRutinaPage, PagosPage, MisPagosPage, MembresiasPage, MiMembresiaPage, MiAsistenciaPage
 │       ├── assets/       logo del proyecto (PNG con fondo transparente)
 │       ├── components/   Mensaje, DetalleRutina
+│       ├── utils/        formato.js (fechas y moneda)
 │       └── services/     api.js (única capa que habla con el backend)
 ├── backend/     Node.js + Express (API REST)
 │   ├── src/
@@ -46,7 +47,7 @@ SAIYAGYM/
 │   │   ├── services/      reglas de negocio y validaciones
 │   │   ├── repositories/  consultas SQL parametrizadas
 │   │   ├── middleware/    autenticación/permisos por rol y manejo de errores
-│   │   └── config/        variables de entorno y conexión a PostgreSQL
+│   │   └── config/        env.js (variables de entorno), db.js (conexión) y reglas.js (reglas de negocio y límites)
 │   └── scripts/init-db.js crea la base de datos y las tablas
 ├── database/
 │   ├── schema.sql   tablas, claves, restricciones
@@ -117,7 +118,7 @@ Son solo para pruebas: cámbialas antes de usar el sistema con datos reales.
 ## API REST
 
 Todas las rutas, salvo `/api/salud` y `/api/auth/login`, exigen el encabezado `Authorization: Bearer <token>`.
-`/api/usuarios` es solo del administrador; `/api/rutinas` y `/api/asignaciones`, solo del entrenador; `/api/mi-rutina`, `/api/mis-pagos`, `/api/mi-membresia` y `/api/mi-asistencia`, solo del usuario; `/api/pagos` y `/api/membresias`, solo del administrador.
+`/api/usuarios` es solo del administrador; `/api/rutinas` y `/api/asignaciones`, solo del entrenador; `/api/mi-rutina`, `/api/mis-pagos` y `/api/mi-membresia`, solo del usuario; `/api/pagos` y `/api/membresias`, solo del administrador.
 
 Respuestas exitosas: `{ "ok": true, "data": ..., "mensaje": "..." }`
 Errores: `{ "ok": false, "error": { "codigo": "...", "mensaje": "...", "campos": [] } }`
@@ -147,15 +148,6 @@ Errores: `{ "ok": false, "error": { "codigo": "...", "mensaje": "...", "campos":
 | GET | `/api/membresias/vencimientos?dias=5&filtro=proximas` | E4-HU4 vencimientos; `filtro` = `proximas`, `vencidas` o `todas` |
 | POST | `/api/membresias/:id/alerta` | E4-HU4 generar alerta para una membresía próxima a vencer o vencida |
 | GET | `/api/mi-membresia` | E4-HU2 mi membresía, mi historial y mi alerta (usuario) |
-| GET | `/api/mi-asistencia` | E5-HU2 mi historial de asistencia (más reciente primero), si ya registré hoy, mi racha y si puedo registrar (usuario) |
-| POST | `/api/mi-asistencia` | E5-HU1 registrar mi asistencia de hoy; devuelve la racha ya actualizada |
-| GET | `/api/mi-asistencia/racha` | E5-HU3 / E5-HU4 mi racha: `actual`, `mejor`, `estado` (Activa, En riesgo, Interrumpida, Sin racha) |
-
-**Reglas de asistencia y rachas (Sprint 5)** — *pendientes de confirmar con el docente*:
-- Solo registra asistencia un usuario con membresía vigente (Activa o Próxima a vencer). Vencida, por iniciar o sin membresía se rechaza (409).
-- Una asistencia por usuario y por día (el día es el de la zona horaria del gimnasio, `ZONA_HORARIA`). Un segundo intento se rechaza y no duplica la racha; una restricción única en la base lo garantiza aunque se haga doble clic.
-- La racha cuenta días calendario seguidos. Si pasa un día completo sin asistir, se reinicia (la siguiente asistencia vuelve a 1). La racha de ayer sigue «En riesgo» hasta que termine hoy.
-- La racha no se guarda: se calcula con las fechas de asistencia, así nunca queda desactualizada.
 | POST | `/api/rutinas` | E2-HU1 crear rutina |
 | GET | `/api/rutinas` · `/api/rutinas/:id` | listar / consultar |
 | PUT | `/api/rutinas/:id` | E2-HU3 modificar rutina |
@@ -177,6 +169,19 @@ Errores: `{ "ok": false, "error": { "codigo": "...", "mensaje": "...", "campos":
 - **Rutina "no disponible" (E2-HU4, escenario 3):** la columna `rutinas.estado` (`Activa`/`Inactiva`) existe y la API la respeta; no hay pantalla para inactivar rutinas porque ninguna historia lo solicita.
 - **Documentos:** se guardan en mayúsculas (4 a 20 letras o números) para evitar duplicados como `ab123` y `AB123`.
 - **Seguridad:** consultas SQL parametrizadas, credenciales y `JWT_SECRET` solo en `backend/.env` (excluido de Git), mensajes de error internos sin detalles técnicos.
+
+## Configuración centralizada (sin valores «quemados»)
+
+Ningún servicio ni pantalla escribe a mano una regla o un límite:
+
+| Qué | Dónde | Ejemplos |
+|---|---|---|
+| Reglas de negocio y límites del servidor | `backend/src/config/reglas.js` | roles, tipos de membresía y meses, días para «próxima a vencer» (5) y para renovar (30), largos máximos, patrones de documento/teléfono/contraseña, intentos de login, valor máximo, límite del historial de asistencia, datos demo |
+| Variables de despliegue y credenciales | `backend/.env` → `backend/src/config/env.js` | puerto, base de datos, JWT, zona horaria |
+| Constantes de la interfaz | `frontend/src/config/constantes.js` | roles y etiquetas, tipos de membresía, opciones del filtro de vencimientos, límites de series/repeticiones |
+| Pantallas de cada perfil | `frontend/src/config/modulos.js` | agregar una pantalla = sumar una línea |
+
+Los mensajes de error se arman con esos mismos valores, así el texto y la validación no se contradicen. Para cambiar una regla se edita un solo archivo. El servidor siempre vuelve a validar: los límites del frontend solo ayudan al usuario.
 
 ## Solución de problemas
 

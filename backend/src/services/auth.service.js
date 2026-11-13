@@ -2,29 +2,31 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { config } from "../config/env.js";
 import * as usuarios from "../repositories/usuarios.repository.js";
+import {
+  CONTRASENA,
+  LIMITE_INTENTOS,
+  MENSAJE_CONTRASENA,
+  PATRON_CONTRASENA,
+} from "../config/reglas.js";
 import { AppError } from "../utils/AppError.js";
 
 // Lógica de inicio de sesión. La contraseña nunca se guarda ni se
 // devuelve en texto plano: solo se compara contra su hash (bcrypt).
 
-const RONDAS_BCRYPT = 10;
+const RONDAS_BCRYPT = CONTRASENA.rondasBcrypt;
 
 // Hash falso: se compara contra él cuando el documento no existe, para que
 // la respuesta tarde lo mismo y no se pueda adivinar qué documentos existen.
 const HASH_FALSO = bcrypt.hashSync("clave-falsa-para-igualar-tiempos", RONDAS_BCRYPT);
 
 // Freno contra adivinar contraseñas: máximo de fallos por documento + IP.
-const MAX_FALLOS = 8;
-const VENTANA_MS = 15 * 60 * 1000;
+const { maxFallos: MAX_FALLOS, ventanaMs: VENTANA_MS } = LIMITE_INTENTOS;
 const fallos = new Map(); // clave -> { cantidad, desde }
 
-const patronContrasena = /^(?=.*[A-Za-z])(?=.*\d).{8,72}$/;
-
-export const MENSAJE_CONTRASENA =
-  "La contraseña debe tener entre 8 y 72 caracteres, con al menos una letra y un número.";
+export { MENSAJE_CONTRASENA };
 
 export const contrasenaValida = (contrasena) =>
-  typeof contrasena === "string" && patronContrasena.test(contrasena);
+  typeof contrasena === "string" && PATRON_CONTRASENA.test(contrasena);
 
 export const cifrarContrasena = (contrasena) =>
   bcrypt.hash(contrasena, RONDAS_BCRYPT);

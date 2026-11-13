@@ -1,13 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../services/api.js";
-import { formatearFecha } from "../utils/formato.js";
-
-const moneda = new Intl.NumberFormat("es-CO", {
-  style: "currency",
-  currency: "COP",
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 2,
-});
+import { formatearFecha, moneda } from "../utils/formato.js";
 
 const claseEstado = {
   Activa: "activo",

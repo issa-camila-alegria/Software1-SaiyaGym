@@ -5,6 +5,7 @@ import cors from "cors";
 import express from "express";
 import { config } from "./config/env.js";
 import { pool } from "./config/db.js";
+import { ACCESO_API, LIMITE_CUERPO_JSON } from "./config/reglas.js";
 import { autenticar, autorizar } from "./middleware/auth.js";
 import { manejarErrores, rutaNoEncontrada } from "./middleware/errorHandler.js";
 import asignacionesRoutes from "./routes/asignaciones.routes.js";
@@ -22,7 +23,7 @@ const app = express();
 
 app.disable("x-powered-by");
 app.use(cors({ origin: config.corsOrigin }));
-app.use(express.json({ limit: "100kb" }));
+app.use(express.json({ limit: LIMITE_CUERPO_JSON }));
 
 // Comprobación rápida de que la API y la base de datos responden.
 app.get("/api/salud", async (req, res) => {
@@ -47,15 +48,15 @@ app.use("/api/auth", authRoutes);
 //   administrador -> gestión de usuarios, pagos y membresías
 //   entrenador    -> rutinas y asignaciones
 //   usuario       -> su propia rutina, sus pagos, su membresía y su asistencia
-app.use("/api/usuarios", autenticar, autorizar("administrador"), usuariosRoutes);
-app.use("/api/pagos", autenticar, autorizar("administrador"), pagosRoutes);
-app.use("/api/membresias", autenticar, autorizar("administrador"), membresiasRoutes);
-app.use("/api/rutinas", autenticar, autorizar("entrenador"), rutinasRoutes);
-app.use("/api/asignaciones", autenticar, autorizar("entrenador"), asignacionesRoutes);
-app.use("/api/mi-rutina", autenticar, autorizar("usuario"), miRutinaRoutes);
-app.use("/api/mis-pagos", autenticar, autorizar("usuario"), misPagosRoutes);
-app.use("/api/mi-membresia", autenticar, autorizar("usuario"), miMembresiaRoutes);
-app.use("/api/mi-asistencia", autenticar, autorizar("usuario"), miAsistenciaRoutes);
+app.use("/api/usuarios", autenticar, autorizar(ACCESO_API["usuarios"]), usuariosRoutes);
+app.use("/api/pagos", autenticar, autorizar(ACCESO_API["pagos"]), pagosRoutes);
+app.use("/api/membresias", autenticar, autorizar(ACCESO_API["membresias"]), membresiasRoutes);
+app.use("/api/rutinas", autenticar, autorizar(ACCESO_API["rutinas"]), rutinasRoutes);
+app.use("/api/asignaciones", autenticar, autorizar(ACCESO_API["asignaciones"]), asignacionesRoutes);
+app.use("/api/mi-rutina", autenticar, autorizar(ACCESO_API["mi-rutina"]), miRutinaRoutes);
+app.use("/api/mis-pagos", autenticar, autorizar(ACCESO_API["mis-pagos"]), misPagosRoutes);
+app.use("/api/mi-membresia", autenticar, autorizar(ACCESO_API["mi-membresia"]), miMembresiaRoutes);
+app.use("/api/mi-asistencia", autenticar, autorizar(ACCESO_API["mi-asistencia"]), miAsistenciaRoutes);
 
 // En producción, el mismo servidor entrega la página (frontend/dist) y la API:
 // así se usa una sola dirección web y no hace falta configurar CORS.

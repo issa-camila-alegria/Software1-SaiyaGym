@@ -1,23 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../auth/useAuth.js";
+import {
+  ESTADO_ACTIVO,
+  ESTADO_INACTIVO,
+  ETIQUETA_ROL as etiquetaRol,
+  ROLES,
+  ROL_POR_DEFECTO,
+} from "../config/constantes.js";
 import { api } from "../services/api.js";
-
-const ROLES = [
-  { valor: "usuario", etiqueta: "Usuario" },
-  { valor: "entrenador", etiqueta: "Entrenador" },
-  { valor: "administrador", etiqueta: "Administrador" },
-];
-
-const etiquetaRol = Object.fromEntries(
-  ROLES.map((rol) => [rol.valor, rol.etiqueta])
-);
 
 const formularioInicial = {
   nombre: "",
   documento: "",
   telefono: "",
   correo: "",
-  rol: "usuario",
+  rol: ROL_POR_DEFECTO,
   contrasena: "",
 };
 
@@ -137,7 +134,7 @@ function UsuariosPage({ notificar }) {
   };
 
   const cambiarEstado = async (usuario) => {
-    const nuevoEstado = usuario.estado === "Activo" ? "Inactivo" : "Activo";
+    const nuevoEstado = usuario.estado === ESTADO_ACTIVO ? ESTADO_INACTIVO : ESTADO_ACTIVO;
 
     try {
       const respuesta = await api.usuarios.cambiarEstado(usuario.id, nuevoEstado);
@@ -458,7 +455,7 @@ function UsuariosPage({ notificar }) {
                     <td data-label="Estado">
                       <span
                         className={`estado ${
-                          usuario.estado === "Activo" ? "activo" : "inactivo"
+                          usuario.estado === ESTADO_ACTIVO ? "activo" : "inactivo"
                         }`}
                       >
                         <span className="estado-punto"></span>
@@ -487,7 +484,7 @@ function UsuariosPage({ notificar }) {
                               : undefined
                           }
                         >
-                          {usuario.estado === "Activo" ? "Inactivar" : "Activar"}
+                          {usuario.estado === ESTADO_ACTIVO ? "Inactivar" : "Activar"}
                         </button>
                       </div>
                     </td>

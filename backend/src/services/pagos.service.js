@@ -1,13 +1,14 @@
 import { conTransaccion } from "../config/db.js";
 import * as repositorio from "../repositories/pagos.repository.js";
 import * as usuarios from "../repositories/usuarios.repository.js";
+import {
+  CONCEPTO_POR_DEFECTO,
+  PATRON_PERIODO as patronPeriodo,
+  VALOR_MAXIMO,
+} from "../config/reglas.js";
 import { AppError, leerId } from "../utils/AppError.js";
 
 // Capa de lógica de negocio de pagos (Sprint 3: E3-HU1 y E3-HU2).
-
-const CONCEPTO_POR_DEFECTO = "Mensualidad";
-const VALOR_MAXIMO = 9999999999.99; // NUMERIC(12,2)
-const patronPeriodo = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 const vacio = (valor) =>
   valor === undefined || valor === null || String(valor).trim() === "";
